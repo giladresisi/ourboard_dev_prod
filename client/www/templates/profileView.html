@@ -1,0 +1,78 @@
+<ion-view view-title="" align="center" class="profile-page" dir="rtl" hide-nav-bar="true">
+    <ion-header-bar class="bar-calm">
+        <div class="buttons btn" ng-if="isLoggedIn">
+            <h2>
+                <i class="icon ion-edit" ng-click="editProfile()"></i>
+            </h2>
+        </div>
+        <h1 class="title">{{isLoggedIn ? 'פרופיל' : 'התחברות'}}</h1>
+    </ion-header-bar>
+    <ion-content class="content stable-bg">
+
+        <div ng-if="!isLoggedIn">
+            <div class="page-title">
+                <div>ברוכים הבאים לאפליקציית</div>
+                <div>OurBoard</div>
+            </div>
+            <div class="list stable-bg">
+                <div class="item no-border stable-bg" ng-click="fb_login()">
+                    <button class="button icon-left ion-social-facebook button-royal button-block">התחבר עם פייסבוק
+                    </button>
+                </div>
+                <div class="item email-item no-border stable-bg" ng-click="login()">
+                    <button class="button icon-left ion-at button-calm button-block">התחבר עם אימייל וסיסמא</button>
+                </div>
+                <div>
+                    <span> עוד לא נרשמת?</span>
+                    <span class="calm" ng-click="signUp()">הירשם</span>
+                </div>
+            </div>
+            <div class="continue-as-guest" ui-sref="tab.activity-board">
+                <span>המשך כאורח</span>
+            </div>
+        </div>
+
+
+        <div ng-if="isLoggedIn">
+            <div class="row row-no-padding">
+                <div class="col col-10 text-col icon-col">
+                    <i class="ion-android-person"></i>
+                </div>
+                <div class="col col-90 text-col ">
+                    <span> שם: </span> <span>{{userData.displayName}}</span>
+                </div>
+            </div>
+            <div class="row row-no-padding">
+                <div class="col col-10 text-col icon-col">
+                    <i class="ion-iphone"></i>
+                </div>
+                <div class="col col-100 text-col">
+                    <span> טלפון: </span> <span>{{userData.phone}}</span>
+                </div>
+            </div>
+            <div class="row row-no-padding">
+                <div class="col col-10 text-col icon-col">
+                    <i class="ion-at"></i>
+                </div>
+                <div class="col col-100 text-col">
+                    <span> אימייל: </span> <span>{{userData.email}}</span>
+                </div>
+            </div>
+            <div class="row row-no-padding text-center" dir="ltr">
+                <div class="col col-33 col-offset-33 inline-btn">
+                    <button class="button button-calm" ng-click="logout()">התנתק</button>
+                </div>
+            </div>
+            <div class="row row-no-padding contact-us">
+                <div class="col col-80 text-col icon-col">
+                   כתבו לנו רעיונות לשיפור ושדרוג האפליקציה
+                </div>
+                <div class="col col-20 text-col inline-btn">
+                    <button class="button button-calm contact-us-btn" ng-click="">
+                        <i class="ion-ios-email-outline"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </ion-content>
+</ion-view>

@@ -1,0 +1,67 @@
+@import "../lib/ionic/scss/variables";
+
+.activity-board {
+    .activity-board-item {
+        &.item {
+            padding: 16px 8px 10px 8px;
+        }
+        .date-time-wrapper {
+            position: relative;
+            .date-time {
+                height: 75px;
+                width: 75px;
+                border-radius: 50%;
+                box-shadow: 0 2px 10px 0 rgba(0, 0, 0, 0.2), 0 2px 5px 0 rgba(0, 0, 0, 0.2);
+                margin: auto;
+                padding-top: 18px;
+                font-weight: 600;
+                line-height: 21px;
+                background-color: $energized;
+                color: $light;
+                .time {
+
+                }
+                .date {
+
+                }
+            }
+
+        }
+
+        .activity-summary-info {
+            padding-right: 10px;
+            .name {
+                font-size: 17px;
+                font-weight: 600;
+                margin-top: 8px;
+            }
+            .location {
+                font-size: 16px;
+            }
+            .participants-info {
+                padding-top: 4px;
+                .organizer {
+                    padding-right: 0;
+                }
+                .participants-count {
+                    margin-left: 5px;
+                }
+            }
+        }
+        .custom-col-17 {
+            flex: 0 0 17%;
+            max-width: 17%;
+        }
+        .custom-col-55 {
+            flex: 0 0 55%;
+            max-width: 55%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .toggle-col{
+            padding-top: 8px;
+        }
+    }
+}
+

@@ -1,0 +1,10 @@
+<ion-modal-view align="center" class="general-modal-view" dir="rtl">
+    <ion-content class="content general-modal-content stable-bg">
+        <div ng-switch="activeModal.drtvName">
+            <sign-up-drtv ng-switch-when="signUpDrtv"></sign-up-drtv>
+            <create-new-activity-drtv ng-switch-when="createNewActivityDrtv"></create-new-activity-drtv>
+            <login-drtv ng-switch-when="loginDrtv"></login-drtv>
+            <edit-activity-drtv ng-switch-when="editActivityDrtv"></edit-activity-drtv>
+        </div>
+    </ion-content>
+</ion-modal-view>

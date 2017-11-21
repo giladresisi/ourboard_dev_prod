@@ -1,0 +1,34 @@
+<div class="login-view" dir="rtl">
+    <div class="bar bar-header bar-calm">
+        <h1 class="title">התחברות</h1>
+    </div>
+    <div class="list text-right">
+        <label class="item item-input item-stacked-label">
+            <span class="input-label">
+                <span>אימייל</span>
+                <span class="mandatory">*</span>
+            </span>
+            <input ng-model="loginData.email" type="email" placeholder="John@Doe.com">
+        </label>
+        <label class="item item-input item-stacked-label">
+            <span class="input-label">
+                <span>סיסמא</span>
+                <span class="mandatory">*</span>
+            </span>
+            <input ng-model="loginData.password" type="password" placeholder="*******">
+        </label>
+    </div>
+    <div>
+        <span> עוד לא נרשמת?</span>
+        <span class="calm" ng-click="signUp()">הירשם</span>
+    </div>
+    <div class="errors">
+        <div ng-repeat="error in errors track by $index">
+            {{error}}
+        </div>
+    </div>
+    <div class="bar bar-footer bar-stable">
+        <button class="button button-right button-calm" ng-click="login()">התחבר</button>
+        <button class="button button-left button-light" ng-click="cancel()">ביטול</button>
+    </div>
+</div>

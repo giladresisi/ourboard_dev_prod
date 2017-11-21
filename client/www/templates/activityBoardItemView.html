@@ -1,0 +1,29 @@
+<div class="activity-board-item item card dark" dir="rtl">
+        <div class="row row-no-padding">
+            <div class="col col-25 date-time-wrapper" ng-click="goToActivity()">
+                <div class="date-time">
+                    <div class="date">{{activity.date}}</div>
+                    <div class="time">{{activity.hour}}</div>
+                </div>
+            </div>
+            <div class="col custom-col-55" ng-click="goToActivity()">
+                <div class="activity-summary-info text-right">
+                    <div class="name" >{{activity.type}}</div>
+                    <div class="location">{{activity.location}}</div>
+                    <div class="participants-info row row-no-padding">
+                        <span class="participants-count">
+                            {{activity.users.length}} <i class="ion-person-stalker"></i> |
+                        </span>
+                        <span class="organizer">{{(activity.organizerName | limitTo: 15) + (activity.organizerName.length > 15 ? '...' : '')}}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col custom-col-17 toggle-col">
+                <rsvp-drtv
+                    is-attending="activity.isAttending"
+                    activity-id="activity._id"
+                    redirection-state="'tab.activity-board'"
+                ></rsvp-drtv>
+            </div>
+        </div>
+</div>

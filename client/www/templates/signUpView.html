@@ -1,0 +1,49 @@
+<div class="sign-up-view" dir="rtl">
+    <div class="bar bar-header bar-calm">
+        <h1 class="title">הירשם עם אימייל וסיסמא</h1>
+    </div>
+    <div class="list text-right">
+        <label class="item item-input item-stacked-label">
+            <span class="input-label">
+                <span>שם מלא</span>
+                <span class="mandatory">*</span>
+            </span>
+            <input
+                ng-model="signupData.displayName"
+                type="text" placeholder=""
+                maxlength="20"
+                minlength="3">
+        </label>
+        <label class="item item-input item-stacked-label">
+            <span class="input-label">
+                <span>אימייל</span>
+                <span class="mandatory">*</span>
+            </span>
+            <input ng-model="signupData.email" type="email" placeholder="John@Doe.com">
+        </label>
+        <label class="item item-input item-stacked-label">
+            <span class="input-label">
+                <span>סיסמא</span>
+                <span class="mandatory">*</span>
+            </span>
+            <input ng-model="signupData.password" type="password" placeholder="6 תווים ויותר">
+        </label>
+        <label class="item item-input item-stacked-label">
+            <span class="input-label">טלפון</span>
+            <input ng-model="signupData.phone" type="tel" placeholder="יוצג לשאר הקהילה">
+        </label>
+    </div>
+    <div>
+        <span> כבר נרשמת בעבר?</span>
+        <span class="calm" ng-click="login()">היכנס</span>
+    </div>
+    <div class="errors">
+        <div ng-repeat="error in errors track by $index">
+            {{error}}
+        </div>
+    </div>
+    <div class="bar bar-footer bar-stable">
+        <button class="button button-right button-calm" ng-click="signUp()">הירשם</button>
+        <button class="button button-left button-light" ng-click="cancel()">ביטול</button>
+    </div>
+</div>

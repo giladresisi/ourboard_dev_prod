@@ -1,0 +1,92 @@
+<ion-view view-title="{{activity.type}}" align="center" class="activity-details" dir="rtl" hide-nav-bar="true">
+    <ion-header-bar class="bar-calm">
+        <div class="buttons btn" ng-if="userData && activity.organizer === userData._id">
+            <h2>
+                <i class="icon ion-edit" ng-click="editActivity()"></i>
+            </h2>
+        </div>
+        <h1 class="title">{{activity.type}}</h1>
+        <div class="buttons back-btn btn">
+            <h2>
+                <i class="icon ion-arrow-left-c" ng-click="customBack()"></i>
+            </h2>
+        </div>
+    </ion-header-bar>
+    <div class="floating-button" ng-if="showGoUpButton" ng-click="scrollTop()">
+        <i class="ion-arrow-up-c lg"></i>
+    </div>
+    <ion-content on-scroll="onScroll()" class="content stable-bg">
+        <div class="row row-no-padding">
+            <div class="col col-10 text-col icon-col">
+                <i class="ion-clock"></i>
+            </div>
+            <div class="col col-70 text-col ">
+                <span> מתי: </span> <span>{{activity.date}} | {{activity.hour}}</span>
+            </div>
+            <div class="col col-20 toggle-col">
+                <rsvp-drtv
+                    is-attending="activity.isAttending"
+                    activity-id="activity._id"
+                    redirection-state="'tab.activity-details'">
+                </rsvp-drtv>
+            </div>
+        </div>
+        <div class="row row-no-padding">
+            <div class="col col-10 text-col icon-col">
+                <i class="ion-ios-location"></i>
+            </div>
+            <div class="col col-90 text-col">
+                <span> איפה: </span> <span>{{activity.location}}</span>
+            </div>
+        </div>
+
+        <div class="row row-no-padding" ng-click="organizerClick()">
+            <div class="col col-10 text-col icon-col">
+                <i class="ion-person"></i>
+                <div class="organizer-phone"
+                     ng-show="showOrganizerPhone">
+                    <i class="ion-android-phone-portrait"></i>
+                </div>
+            </div>
+            <div class="col col-90 text-col organizer positive">
+                <span> מארגן: </span>
+                <span>{{(activity.organizerName | limitTo: 20) +
+                            (activity.organizerName.length > 20 ? '...' : '')}}
+                    <i ng-if="!showOrganizerPhone" class="ion-chevron-down"></i>
+                    <i ng-if="showOrganizerPhone" class="ion-chevron-up"></i>
+                </span>
+                <div class="organizer-phone"
+                     ng-show="showOrganizerPhone && activity.organizerPhone">
+                    {{activity.organizerPhone}}
+                </div>
+            </div>
+        </div>
+
+        <div ng-if="activity.extraDetails" class="row row-no-padding">
+            <div class="col col-10 text-col icon-col">
+                <i class="ion-ios-information-outline"></i>
+            </div>
+            <div class="col col-100 text-col">
+                {{activity.extraDetails}}
+            </div>
+        </div>
+        <div class="row background-img"
+             ng-style="{'background-image': (activity.imgUrl ? url(activity.imgUrl) : 'url(\'https://thumb1.shutterstock.com/display_pic_with_logo/2342591/650017768/stock-photo-huge-multi-sports-collage-soccer-basketball-football-hockey-baseball-boxing-etc-650017768.jpg\')')}">
+        </div>
+        <div class="row row-no-padding" id="participant-list">
+            <div class="col col-10 text-col icon-col">
+                <i class="ion-person-stalker"></i>
+            </div>
+            <div class="col col-90 text-col">
+                <div class="positive" ng-click="participantsClick()"> {{activity.nParticipants}}  משתתפים
+                    <i ng-if="!showParticipants && activity.users.length > 0" class="ion-chevron-down"></i>
+                    <i ng-if="showParticipants && activity.users.length > 0" class="ion-chevron-up"></i></div>
+                <div class="participant {{(participant._id == userData.id) ? 'balanced' : ''}}"
+                     ng-show="showParticipants"
+                     ng-repeat="participant in activity.participants track by participant._id">
+                    {{participant.displayName}}
+                </div>
+            </div>
+        </div>
+    </ion-content>
+</ion-view>

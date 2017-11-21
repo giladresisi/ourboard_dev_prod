@@ -1,0 +1,65 @@
+@import "../lib/ionic/scss/variables";
+.profile-page {
+    .btn{
+        z-index: 99999;
+        margin-right: 6px;
+        h2{
+            color: $light;
+        }
+        &.back-btn{
+            right: auto !important;
+            left: 15px;
+        }
+    }
+    .list{
+        margin-top: 10%;
+    }
+    .item{
+        &.no-border{
+            border: none;
+        }
+        &.email-item{
+            padding-bottom: 0;
+        }
+    }
+    .continue-as-guest{
+        margin-top: 40px;
+        font-size: 16px;
+    }
+    .page-title{
+        margin-top: 10%;
+        font-size: 25px;
+        line-height: 35px;
+    }
+    .col.text-col{
+        line-height: 72px;
+        text-align: right;
+        font-size: 22px;
+        padding-right: 10px;
+        &.no-padding{
+            padding-right: 0;
+        }
+    }
+    .row{
+        border-bottom: 1px solid black;
+        height: 74px;
+        margin-top: 0 !important;
+        &.contact-us{
+            .col.text-col{
+                line-height: 36px;
+
+            }
+        }
+    }
+    .inline-btn{
+        button{
+            margin-top: 10%;
+            &.contact-us-btn{
+                margin-top: 21%;
+            }
+        }
+    }
+    .contact-us-btn{
+        font-size: 36px;
+    }
+}

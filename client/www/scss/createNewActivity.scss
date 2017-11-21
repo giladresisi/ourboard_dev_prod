@@ -1,0 +1,68 @@
+@import "../lib/ionic/scss/variables";
+
+.create-new-activity{
+    .list{
+        padding-top: 60px !important;
+        .item {
+            background-color: $stable;
+            margin-bottom: 2px;
+            &.no-border{
+                border: none;
+            }
+            &.free-text{
+                font-size: 20px;
+                transition: 0.2s all linear;
+                line-height: 36px;
+                background-color: $stable;
+                &.ng-hide{
+                    line-height: 0px;
+                    color: transparent;
+                }
+                &.ng-hide-remove{
+                    display: block !important;
+                }
+            }
+            .additional-info{
+                background-color: transparent;
+            }
+            &.name-select{
+                select{
+                    border: none;
+                    background: none;
+                    font-size: 16px;
+                    margin-right: -4px;
+                }
+            }
+            &.ion-datetime-picker{
+                padding-right: 0;
+                font-size: 14px;
+                color: $dark;
+                .input-label{
+                    margin-bottom: 10px;
+                }
+                .date-time-text{
+                    margin-bottom: 7px;
+                }
+            }
+        }
+    }
+    .bar-footer{
+        border: none;
+        background-color: $stable;
+        .button-right{
+            width: 48%;
+            right: 0;
+            left: auto !important;
+        }
+        .button-left{
+            width: 48%;
+            left: 0;
+            right: auto !important;
+        }
+    }
+    .errors{
+        text-align: right;
+        color: $assertive;
+    }
+}
+

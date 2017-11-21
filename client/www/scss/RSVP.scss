@@ -1,0 +1,21 @@
+@import "../lib/ionic/scss/variables";
+
+.toggle-wrapper {
+    .toggle {
+        .track {
+            border-color: $strongGood;
+        }
+        .handle {
+            background-color: $strongGood;
+        }
+        input:checked + .track {
+            background-color: $good;
+            border-color: $strongGood ;
+            .handle {
+                background-color: $strongGood;
+                border: 1px solid $strongGood;
+            }
+        }
+    }
+}
+

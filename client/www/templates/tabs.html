@@ -1,0 +1,39 @@
+<!--
+Create tabs with an icon and label, using the tabs-positive style.
+Each tab's child <ion-nav-view> directive will have its own
+navigation history that also transitions its views in and out.
+-->
+<ion-tabs class="tabs-icon-bottom tabs-color-active-dark tabs-positive">
+
+    <!-- Profile Tab -->
+    <ion-tab title="פרופיל" icon-off="ion-person" icon-on="ion-person" href="#/tab/profile">
+        <ion-nav-view name="tab-profile"></ion-nav-view>
+    </ion-tab>
+
+    <!-- Dummy Tab 1-->
+    <ion-tab title="Dummy1" icon-off="ion-arrow-swap" icon-on="ion-arrow-swap" href="#/tab/dummy1">
+        <ion-nav-view name="tab-dummy1"></ion-nav-view>
+    </ion-tab>
+
+    <!-- Dummy Tab 2-->
+    <ion-tab title="Dummy2" icon-off="ion-hammer" icon-on="ion-hammer" href="#/tab/dummy2">
+        <ion-nav-view name="tab-dummy2"></ion-nav-view>
+    </ion-tab>
+
+    <!-- Dummy Tab 3-->
+    <ion-tab title="Dummy3" icon-off="ion-model-s" icon-on="ion-model-s" href="#/tab/dummy3">
+        <ion-nav-view name="tab-dummy3"></ion-nav-view>
+    </ion-tab>
+
+    <!-- Activity Board Tab -->
+    <ion-tab title="לוח פעילויות" icon-off="ion-android-walk" icon-on="ion-android-walk" href="#/tab/activity-board">
+        <ion-nav-view name="tab-activity-board"></ion-nav-view>
+    </ion-tab>
+
+    <!-- Activity Details Tab -->
+    <ion-tab hidden="true" title="פרטי פעילות" icon-off="ion-android-walk" icon-on="ion-android-walk" href="#/tab/activity-details">
+        <ion-nav-view name="tab-activity-details"></ion-nav-view>
+    </ion-tab>
+
+
+</ion-tabs>

@@ -1,0 +1,15 @@
+
+
+# Elastic Beanstalk Files
+
+.elasticbeanstalk/*
+
+!.elasticbeanstalk/*.cfg.yml
+
+!.elasticbeanstalk/*.global.yml
+
+uploads/
+
+client/*node_modules*
+client/platforms/
+client/plugins/

@@ -1,0 +1,144 @@
+// Ionic Starter App
+
+// angular.module is a global place for creating, registering and retrieving Angular modules
+// 'starter' is the name of this angular module example (also set in a <body> attribute in index.html)
+// the 2nd parameter is an array of 'requires'
+// 'starter.services' is found in services;.js
+// 'starter.controllers' is found in controllers.js
+angular.module('ourBoard', [
+    'ionic',
+    'LocalStorageModule',
+    'satellizer',
+    'ion-datetime-picker',
+    'angularMoment'
+])
+    .constant('ENV', {
+        // API_URL:'https://ourboard.com/',
+        DEV_URL: '',
+        API_URL: 'http://192.168.1.6:4000'
+    })
+
+
+    .run(function ($ionicPlatform, $window) {
+        $ionicPlatform.ready(function () {
+            // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
+            // for form inputs)
+            if (window.cordova && window.cordova.plugins && window.cordova.plugins.Keyboard) {
+                cordova.plugins.Keyboard.hideKeyboardAccessoryBar(true);
+                cordova.plugins.Keyboard.disableScroll(true);
+
+            }
+            if (window.StatusBar) {
+                // org.apache.cordova.statusbar required
+                StatusBar.styleDefault();
+            }
+        });
+
+    })
+
+    .config(function ($stateProvider, $urlRouterProvider, $ionicConfigProvider, $authProvider, localStorageServiceProvider, ENV) {
+
+        $ionicConfigProvider.tabs.position('bottom'); // other values: to
+        $ionicConfigProvider.navBar.alignTitle('center');
+        $ionicConfigProvider.backButton.previousTitleText(false);
+        $ionicConfigProvider.form.toggle('large');
+
+
+        //Auth Configuration
+        $authProvider.cordova = true;
+        // Satellizer configuration that specifies which API
+        // route the JWT should be retrieved from
+        $authProvider.tokenName = 'token';
+        $authProvider.tokenPrefix = 'OurBoard';
+        $authProvider.baseUrl = ENV.API_URL;
+        $authProvider.facebook({
+            clientId: '1805278553072146'
+        });
+
+        localStorageServiceProvider
+            .setPrefix('')
+            .setStorageCookie(0)
+            .setStorageCookieDomain(window.location);
+
+        // Ionic uses AngularUI Router which uses the concept of states
+        // Learn more here: https://github.com/angular-ui/ui-router
+        // Set up the various states which the app can be in.
+        // Each state's controller can be found in controllers.js
+        $stateProvider
+        // setup an abstract state for the tabs directive
+            .state('tab', {
+                url: '/tab',
+                abstract: true,
+                templateUrl: 'templates/tabs.html'
+            })
+
+            // Each tab has its own nav history stack:
+
+            .state('tab.profile', {
+                url: '/profile',
+                views: {
+                    'tab-profile': {
+                        templateUrl: 'templates/profileView.html',
+                        controller: 'ProfileCtrl'
+                    }
+                }
+            })
+
+            .state('tab.dummy1', {
+                url: '/dummy1',
+                views: {
+                    'tab-dummy1': {
+                        templateUrl: 'templates/dummy1.html',
+                        controller: 'DummyCtrl'
+                    }
+                }
+            })
+            .state('tab.dummy2', {
+                url: '/dummy2',
+                views: {
+                    'tab-dummy2': {
+                        templateUrl: 'templates/dummy2.html',
+                        controller: 'DummyCtrl'
+                    }
+                }
+            })
+            .state('tab.dummy3', {
+                url: '/dummy3',
+                views: {
+                    'tab-dummy3': {
+                        templateUrl: 'templates/dummy3.html',
+                        controller: 'DummyCtrl'
+                    }
+                }
+            })
+
+            .state('tab.activity-board', {
+                url: '/activity-board',
+                views: {
+                    'tab-activity-board': {
+                        templateUrl: 'templates/activityBoardView.html',
+                        controller: 'ActivityBoardCtrl'
+                    }
+                },
+                params: {'openCreate': false, 'activityId': false}
+            })
+            .state('tab.activity-details', {
+                url: '/activity-details/:activityId',
+                views: {
+                    'tab-activity-details': {
+                        templateUrl: 'templates/activityDetailsView.html',
+                        controller: 'ActivityDetailsCtrl'
+                    }
+                },
+                params: {
+                    'showParticipants': false,
+                    'showOrganizerPhone': false,
+                    'originNotFromActivityFeed': false,
+                    'joinActivity': false
+                }
+            });
+
+        // if none of the above states are matched, use this as the fallback
+        $urlRouterProvider.otherwise('/tab/activity-board');
+
+    });

@@ -1,0 +1,23 @@
+@import "../lib/ionic/scss/variables";
+
+.general-modal-view {
+    .general-modal-content{
+        .scroll{
+            height: 100%;
+        };
+        padding: 16px;
+        .item{
+            border-left: none;
+            border-right: none;
+            border-top: none;
+            input{
+                padding-right: 0;
+                background-color: $stable;
+            }
+            .mandatory{
+                color: $assertive;
+            }
+        }
+    }
+}
+
