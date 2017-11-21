@@ -61,7 +61,8 @@ function hashPassword(password, done) {
 
 var app = express();
 
-app.set('host', process.env.NODE_IP || '192.168.1.6');
+// app.set('host', process.env.NODE_IP || '192.168.1.6');
+app.set('host', process.env.NODE_IP || 'localhost');
 app.use(cors());
 app.use(logger('dev'));
 app.use(bodyParser.json());

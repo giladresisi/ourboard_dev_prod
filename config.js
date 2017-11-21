@@ -2,7 +2,7 @@ module.exports = {
     // App Settings
     MONGO_URI: process.env.MONGO_URI || 'mongodb://alonkatz:alonkatz@ds237815.mlab.com:37815/ourboard_dev',
     TOKEN_SECRET: process.env.TOKEN_SECRET || 'B38E63D45418C7466ECFA5D867902F9317711E8824A8AC4B637F2BADC8FF94A3',
-    S3_BUCKET: process.env.S3_BUCKET || 'gogroupapp',
+    S3_BUCKET: process.env.S3_BUCKET || 'ourboard-dev',
 
     // OAuth 2.0
     FACEBOOK_SECRET: process.env.FACEBOOK_SECRET || 'd4e9065ff8b6cf4873d6a39982f110dc',
