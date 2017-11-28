@@ -5,7 +5,7 @@ module.exports = {
     S3_BUCKET: process.env.S3_BUCKET || 'ourboard-dev',
 
     // OAuth 2.0
-    FACEBOOK_SECRET: process.env.FACEBOOK_SECRET || 'd4e9065ff8b6cf4873d6a39982f110dc',
+    FACEBOOK_SECRET: process.env.FACEBOOK_SECRET || '510d69fb56f15688f83b20bd03d2e9d6',
     FOURSQUARE_SECRET: process.env.FOURSQUARE_SECRET || 'YOUR_FOURSQUARE_CLIENT_SECRET',
     GOOGLE_SECRET: process.env.GOOGLE_SECRET || 'ZI5IpbZecGgKyZeof9ypV5P6',
     GITHUB_SECRET: process.env.GITHUB_SECRET || 'YOUR_GITHUB_CLIENT_SECRET',

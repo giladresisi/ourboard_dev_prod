@@ -13,9 +13,9 @@ angular.module('ourBoard', [
     'angularMoment'
 ])
     .constant('ENV', {
-        API_URL:'http://ourboarddev-env.us-west-2.elasticbeanstalk.com',
         DEV_URL: '',
-        // API_URL: 'http://192.168.1.6:4000'
+        API_URL:'http://ourboarddev-env.us-west-2.elasticbeanstalk.com'
+        //API_URL: 'http://192.168.1.6:4000'
     })
 
 
@@ -52,7 +52,8 @@ angular.module('ourBoard', [
         $authProvider.tokenPrefix = 'OurBoard';
         $authProvider.baseUrl = ENV.API_URL;
         $authProvider.facebook({
-            clientId: '1805278553072146'
+            //clientId: '1805278553072146'
+            clientId: '148119152614035'
         });
 
         localStorageServiceProvider
