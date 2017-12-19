@@ -2,7 +2,7 @@ angular.module('ourBoard').directive('createNewActivityDrtv',
     function (dataSrvc, $rootScope) {
         return {
             restrict: 'E',
-            templateUrl: 'templates/createNewActivityView.html',
+            templateUrl: 'templates/createEditNewActivityView.html',
             link: function ($scope, element, attrs) {
                 $scope.errors = [];
 
@@ -64,7 +64,7 @@ angular.module('ourBoard').directive('createNewActivityDrtv',
                         dataSrvc.api({
                             type: 'createNewActivity',
                             args: {
-                                type: $scope.newActivityData.nameId === 'FREE_TEXT' ? $scope.newActivityData.freeName : _.findWhere($scope.nameOptions, {id: parseInt($scope.newActivityData.nameId)}).display,
+                                title: $scope.newActivityData.nameId === 'FREE_TEXT' ? $scope.newActivityData.freeName : _.findWhere($scope.nameOptions, {id: parseInt($scope.newActivityData.nameId)}).display,
                                 location: $scope.newActivityData.location,
                                 hasImage: !!$scope.newActivityData.image,
                                 extraDetails: $scope.newActivityData.additionalInfo,

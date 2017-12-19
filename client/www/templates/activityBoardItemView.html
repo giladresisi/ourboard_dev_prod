@@ -12,7 +12,7 @@
                     <div class="location">{{activity.location}}</div>
                     <div class="participants-info row row-no-padding">
                         <span class="participants-count">
-                            {{activity.users.length}} <i class="ion-person-stalker"></i> |
+                            {{activity.nParticipants}} <i class="ion-person-stalker"></i> |
                         </span>
                         <span class="organizer">{{(activity.organizerName | limitTo: 15) + (activity.organizerName.length > 15 ? '...' : '')}}</span>
                     </div>

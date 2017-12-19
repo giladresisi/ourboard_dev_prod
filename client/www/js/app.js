@@ -10,12 +10,13 @@ angular.module('ourBoard', [
     'LocalStorageModule',
     'satellizer',
     'ion-datetime-picker',
-    'angularMoment'
+    'angularMoment',
+    'ngFileUpload'
 ])
     .constant('ENV', {
         DEV_URL: '',
         API_URL:'http://ourboarddev-env.us-west-2.elasticbeanstalk.com'
-        //API_URL: 'http://192.168.1.6:4000'
+        //API_URL: 'http://192.168.1.4:4000'
     })
 
 
@@ -42,6 +43,7 @@ angular.module('ourBoard', [
         $ionicConfigProvider.navBar.alignTitle('center');
         $ionicConfigProvider.backButton.previousTitleText(false);
         $ionicConfigProvider.form.toggle('large');
+        $ionicConfigProvider.form.checkbox("circle");
 
 
         //Auth Configuration
@@ -52,7 +54,6 @@ angular.module('ourBoard', [
         $authProvider.tokenPrefix = 'OurBoard';
         $authProvider.baseUrl = ENV.API_URL;
         $authProvider.facebook({
-            //clientId: '1805278553072146'
             clientId: '148119152614035'
         });
 
@@ -115,16 +116,22 @@ angular.module('ourBoard', [
 
             .state('tab.activity-board', {
                 url: '/activity-board',
+                cache: false,
                 views: {
                     'tab-activity-board': {
                         templateUrl: 'templates/activityBoardView.html',
                         controller: 'ActivityBoardCtrl'
                     }
                 },
-                params: {'openCreate': false, 'activityId': false}
+                params: {
+                    'openCreate': false,
+                    'activityId': false,
+                    'joinActivity': false
+                }
             })
             .state('tab.activity-details', {
                 url: '/activity-details/:activityId',
+                cache: false,
                 views: {
                     'tab-activity-details': {
                         templateUrl: 'templates/activityDetailsView.html',
@@ -134,7 +141,6 @@ angular.module('ourBoard', [
                 params: {
                     'showParticipants': false,
                     'showOrganizerPhone': false,
-                    'originNotFromActivityFeed': false,
                     'joinActivity': false
                 }
             });

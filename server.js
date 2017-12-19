@@ -61,8 +61,8 @@ function hashPassword(password, done) {
 
 var app = express();
 
-//app.set('host', process.env.NODE_IP || '192.168.1.6');
-app.set('host', process.env.NODE_IP || 'localhost');
+app.set('host', process.env.NODE_IP || '192.168.1.4');
+//app.set('host', process.env.NODE_IP || 'localhost');
 app.use(cors());
 app.use(logger('dev'));
 app.use(bodyParser.json());
@@ -123,18 +123,18 @@ function createJWT(user) {
 
 /*
  |--------------------------------------------------------------------------
- | GET /api/me
+ | GET /api/me - get user profile data
  |--------------------------------------------------------------------------
  */
 app.get('/api/me', ensureAuthenticated, function (req, res) {
     MongoPool.getInstance(function (db) {
         db.collection('users', function (err, users) {
-            if (err != null) {
+            if (err) {
                 console.log('get(/api/me) error: db.collection()');
                 return res.status(500).send({message: err.message});
             }
-            users.findOne({"_id": new ObjectId(req.user)}, function (err, user) {
-                if (err != null) {
+            users.findOne({"_id": new ObjectId(req.user)}, {fields: {password: 0, activities: 0}}, function (err, user) {
+                if (err) {
                     console.log('get(/api/me) error: collection.findOne()');
                     return res.status(500).send({message: err.message});
                 }
@@ -147,32 +147,108 @@ app.get('/api/me', ensureAuthenticated, function (req, res) {
 
 /*
  |--------------------------------------------------------------------------
- | PUT /api/me
+ | Aux function to save & send new user data
  |--------------------------------------------------------------------------
  */
-app.put('/api/me', ensureAuthenticated, function (req, res) {
+function saveAndSendNewUserData(user, users, res, req, newUserObjectForSet) {
+    users.findOne({email: user.email}, function (err, existingUser) {
+        if (err) {
+            console.log('post(/api/me) error: collection.findOne()');
+            return res.status(500).send({message: err.message});
+        }
+        if (existingUser._id.toString() !== req.user) {
+            console.log('post(/api/me) error: Email is already taken');
+            return res.status(409).send({message: 'Email is already taken by another user'});
+        }
+        else {
+            users.updateOne({"_id": new ObjectId(user._id.toString())}, {
+                $set: newUserObjectForSet
+            }, function (err) {
+                if (!err) {
+                    users.findOne({email: req.body.email}, function (err, newUser) {
+                        if (!err) {
+                            res.status(200).send({token: createJWT(newUser)});
+                        }
+                    });
+                }
+            });
+        }
+    });
+}
+
+/*
+ |--------------------------------------------------------------------------
+ | POST /api/me - update user profile data
+ |--------------------------------------------------------------------------
+ */
+app.post('/api/me', ensureAuthenticated, function (req, res) {
     MongoPool.getInstance(function (db) {
         db.collection('users', function (err, users) {
-            if (err != null) {
-                console.log('put(/api/me) error: db.collection()');
+            if (err) {
+                console.log('post(/api/me) error: db.collection()');
                 return res.status(500).send({message: err.message});
             }
-            users.updateOne({"_id": new ObjectId(req.user)}, {
-                $set: {
-                    displayName: req.body.displayName,
-                    email: req.body.email
-                }
-            }, function (err, user) {
+            users.findOne({"_id": new ObjectId(req.user)}, function (err, user) {
                 if (err) {
-                    console.log('put(/api/me) error: collection.updateOne()');
+                    console.log('post(/api/me) error: collection.findOne()');
                     return res.status(500).send({message: err.message});
                 }
-                console.log('put(/api/me) success: user = ' + JSON.stringify(user));
-                res.status(200).end();
+                else if (user) {
+                    var newUserObjectForSet = {};
+                    newUserObjectForSet.displayName = req.body.displayName || user.displayName;
+                    newUserObjectForSet.phone = req.body.phone || user.phone;
+
+                    if (req.body.newPassword && req.body.password) {
+                        comparePassword(user.password, req.body.password, function (err, isMatch) {
+                            if (!isMatch) {
+                                console.log('post(/auth/login +) error: Passwords do not match - ' + req.body.password + ' ' + user.password);
+                                return res.status(402).send({message: 'Passwords do not match'});
+                            }
+                            console.log('post(/auth/login) success: user = ' + JSON.stringify(user));
+                            hashPassword(req.body.newPassword, function (hashed) {
+                                newUserObjectForSet.password = hashed;
+                                saveAndSendNewUserData(user, users, res, req, newUserObjectForSet);
+                            });
+                        });
+                    } else {
+                        saveAndSendNewUserData(user, users, res, req, newUserObjectForSet);
+                    }
+                } else {
+                    res.status(500).send({message: 'User is not authenticated please login'});
+                }
             });
         });
     });
 });
+
+/*
+ |--------------------------------------------------------------------------
+ | PUT /api/me
+ |--------------------------------------------------------------------------
+ */
+// app.put('/api/me', ensureAuthenticated, function (req, res) {
+//     MongoPool.getInstance(function (db) {
+//         db.collection('users', function (err, users) {
+//             if (err) {
+//                 console.log('put(/api/me) error: db.collection()');
+//                 return res.status(500).send({message: err.message});
+//             }
+//             users.updateOne({"_id": new ObjectId(req.user)}, {
+//                 $set: {
+//                     displayName: req.body.displayName,
+//                     email: req.body.email
+//                 }
+//             }, function (err, user) {
+//                 if (err) {
+//                     console.log('put(/api/me) error: collection.updateOne()');
+//                     return res.status(500).send({message: err.message});
+//                 }
+//                 console.log('put(/api/me) success: user = ' + JSON.stringify(user));
+//                 res.status(200).end();
+//             });
+//         });
+//     });
+// });
 
 
 /*
@@ -199,7 +275,7 @@ app.post('/auth/login', function (req, res) {
                 comparePassword(user.password, req.body.password, function (err, isMatch) {
                     if (!isMatch) {
                         console.log('post(/auth/login +) error: Passwords do not match - ' + req.body.password + ' ' + user.password);
-                        return res.status(402).send({message: 'Passwords do not match - ' + req.body.password + ' ' + user.password});
+                        return res.status(402).send({message: 'Passwords do not match'});
                     }
                     console.log('post(/auth/login) success: user = ' + JSON.stringify(user));
                     res.send({token: createJWT(user)});
@@ -236,8 +312,7 @@ app.post('/auth/signup', function (req, res) {
                         email: req.body.email,
                         password: hashed,
                         phone: req.body.phone,
-                        activities: [],
-                        unseen: []
+                        activities: []
                     };
                     users.insertOne(user, function (err) {
                         if (err) {
@@ -323,8 +398,7 @@ app.post('/auth/google', function (req, res) {
                                 google: profile.sub,
                                 picture: profile.picture.replace('sz=50', 'sz=200'),
                                 displayName: profile.name,
-                                sessions: [],
-                                unseen: []
+                                activities: []
                             };
                             users.insertOne(user, function (err) {
                                 if (err) {
@@ -413,9 +487,8 @@ app.post('/auth/github', function (req, res) {
                                 github: profile.id,
                                 picture: profile.avatar_url,
                                 displayName: profile.name,
-                                sessions: [],
-                                unseen: []
-                            }
+                                activities: []
+                            };
                             users.insertOne(user, function (err) {
                                 if (err) {
                                     console.log('post(/auth/github) error: collection.insertOne()');
@@ -494,8 +567,7 @@ app.post('/auth/instagram', function (req, res) {
                             instagram: body.user.id,
                             picture: body.user.profile_picture,
                             displayName: body.user.username,
-                            sessions: [],
-                            unseen: []
+                            activities: []
                         }
                         users.insertOne(user, function (err) {
                             if (err) {
@@ -584,8 +656,7 @@ app.post('/auth/linkedin', function (req, res) {
                                 linkedin: profile.id,
                                 picture: profile.pictureUrl,
                                 displayName: profile.firstName + ' ' + profile.lastName,
-                                sessions: [],
-                                unseen: []
+                                activities: []
                             }
                             users.insertOne(user, function (err) {
                                 if (err) {
@@ -674,8 +745,7 @@ app.post('/auth/live', function (req, res) {
                             var user = {
                                 live: profile.id,
                                 displayName: profile.name,
-                                sessions: [],
-                                unseen: []
+                                activities: []
                             }
                             users.insertOne(user, function (err) {
                                 if (err) {
@@ -773,8 +843,7 @@ app.post('/auth/facebook', function (req, res) {
                                 facebook: profile.id,
                                 picture: 'https://graph.facebook.com/' + profile.id + '/picture?type=large',
                                 displayName: profile.name,
-                                activities: [],
-                                unseen: []
+                                activities: []
                             };
                             users.insertOne(user, function (err) {
                                 if (err) {
@@ -787,8 +856,7 @@ app.post('/auth/facebook', function (req, res) {
                         });
                     }
                 });
-            }
-        );
+            });
 
         });
     }
@@ -854,8 +922,7 @@ app.post('/auth/yahoo', function (req, res) {
                     var user = {
                         yahoo: body.profile.guid,
                         displayName: body.profile.nickname,
-                        sessions: [],
-                        unseen: []
+                        activities: []
                     }
                     users.insertOne(user, function (err) {
                         if (err) {
@@ -1304,62 +1371,10 @@ app.post('/auth/unlink', ensureAuthenticated, function (req, res) {
 
 /*
  |--------------------------------------------------------------------------
- | GET /user/basic - Get basic user data on app start
+ | GET /activity/all - Get all existing activities
  |--------------------------------------------------------------------------
  */
-app.get('/user/basic', ensureAuthenticated, function (req, res) {
-    MongoPool.getInstance(function (db) {
-        db.collection('users', function (err, users) {
-            if (err != null) {
-                console.log('get(/user/basic) error: db,collection()');
-                return res.status(500).send({message: err.message});
-            }
-            users.findOne({"_id": new ObjectId(req.user)}, {
-                fields: {
-                    displayName: 1,
-                    unseen: 1,
-                    _id: 0
-                }
-            }, function (err, user) {
-                if (err != null) {
-                    console.log('get(/user/basic) error: collection.findOne()');
-                    return res.status(500).send({message: err.message});
-                }
-                if (!user) {
-                    console.log('get(/user/basic) error: User Not Found');
-                    return res.status(400).send({message: 'User Not Found'});
-                }
-                user.unseen.forEach(function (sessionId, index, arr) {
-                    arr[index] = new ObjectId(sessionId);
-                });
-                db.collection('sessions', function (err, sessions) {
-                    if (err != null) {
-                        console.log('get(/user/basic) error: db.collection(sessions)');
-                        return res.status(500).send({message: err.message});
-                    }
-                    var nowMS = (new Date()).getTime();
-                    sessions.find({$and: [{_id: {$in: user.unseen}}, {datetimeMS: {$gte: nowMS}}, {erased: {$ne: true}}]}).toArray(function (err, sessionArr) {
-                        if (err != null) {
-                            console.log('get(/user/basic) error: collection.find(sessions)');
-                            return res.status(500).send({message: err.message});
-                        }
-                        user.nUnseen = sessionArr.length;
-                        delete user.unseen;
-                        console.log('get(/user/basic) success: user: ' + JSON.stringify(user));
-                        res.send(user);
-                    });
-                });
-            });
-        });
-    });
-});
-
-/*
- |--------------------------------------------------------------------------
- | GET /activity/all - Get all existing sessions
- |--------------------------------------------------------------------------
- */
-app.get('/activity/all', function (req, res) {
+app.get('/activity/all', ensureAuthenticated, function (req, res) {
     MongoPool.getInstance(function (db) {
         db.collection('activities', function (err, activities) {
             if (err != null) {
@@ -1367,7 +1382,7 @@ app.get('/activity/all', function (req, res) {
                 return res.status(500).send({message: err.message});
             }
             var nowMS = (new Date()).getTime();
-            activities.find({$and: [{datetimeMS: {$gte: nowMS}}, {erased: {$ne: true}}]}).toArray(function (err, activityArr) {
+            activities.find({datetimeMS: {$gte: nowMS}}).toArray(function (err, activityArr) {
                 if (err != null) {
                     console.log('get(/activity/all) error: collection.find(activities)');
                     return res.status(500).send({message: err.message});
@@ -1375,113 +1390,41 @@ app.get('/activity/all', function (req, res) {
                 if (activityArr.length == 0) {
                     return res.send(activityArr);
                 }
-                activityArr.sort(function (s1, s2) {
-                    return s1.datetimeMS - s2.datetimeMS;
+                activityArr.sort(function (a1, a2) {
+                    return a1.datetimeMS - a2.datetimeMS;
                 });
-                activityArr.forEach(function (session, index, arr) {
-                    delete arr[index].extraDetails;
-                });
-                res.send(activityArr);
-            });
-        });
-    });
-});
-
-/*
- |--------------------------------------------------------------------------
- | GET /session/all/user - Get all existing sessions with user participation flag
- |--------------------------------------------------------------------------
- */
-app.get('/activity/all/user', ensureAuthenticated, function (req, res) {
-    MongoPool.getInstance(function (db) {
-        db.collection('users', function (err, users) {
-            if (err != null) {
-                console.log('get(/session/all/user) error: db.collection(users)');
-                return res.status(500).send({message: err.message});
-            }
-            users.findOne({"_id": new ObjectId(req.user)}, function (err, user) {
-                if (!user) {
-                    console.log('get(/session/all/user) error: User Not Found');
-                    return res.status(400).send({message: 'User Not Found'});
-                }
-                db.collection('sessions', function (err, sessions) {
+                db.collection('users', function (err, users) {
                     if (err != null) {
-                        console.log('get(/session/all/user) error: db.collection(sessions)');
+                        console.log('get(/activity/all) error: db.collection(users)');
                         return res.status(500).send({message: err.message});
                     }
-                    var userSessions = user.sessions.map(function (sessionId) {
-                        return new ObjectId(sessionId.toString());
+                    var organizerIDs = activityArr.map(function(activity) {
+                        return new ObjectId(activity.organizer);
                     });
-                    var nowMS = (new Date()).getTime();
-                    sessions.find({
-                        $and: [{datetimeMS: {$gte: nowMS}},
-                            {
-                                $or: [{erased: {$ne: true}},
-                                    {
-                                        $and: [{users: {$elemMatch: {$eq: user._id.toString()}}},
-                                            {_id: {$in: userSessions}}
-                                        ]
-                                    }
-                                ]
-                            }
-                        ]
-                    }).toArray(function (err, sessionArr) {
+                    users.find({_id: {$in: organizerIDs}}, {
+                        fields: {
+                            displayName: 1
+                        }
+                    }).toArray(function (err, organizerArr) {
                         if (err != null) {
-                            console.log('get(/session/all/user) error: collection.find()');
+                            console.log('get(/activity/all) error: collection.find(activities.organizers)');
                             return res.status(500).send({message: err.message});
                         }
-                        if (sessionArr.length == 0) {
-                            return res.send(sessionArr);
-                            ;
-                        }
-                        sessionArr.sort(function (s1, s2) {
-                            if (s1.erased != s2.erased) {
-                                return ((s1.erased == true) ? -1 : 1);
-                            } else {
-                                return (s1.datetimeMS - s2.datetimeMS);
-                            }
+                        organizerIDs = organizerArr.map(function(organizer) {
+                            return organizer._id.toString();
                         });
-                        sessionArr.forEach(function (session, index, arr) {
-                            arr[index].nParticipants = session.users.length;
-                            arr[index].isParticipant = false;
-                            if (session.users.some(function (userId) {
-                                    return (userId.toString() == user._id.toString());
-                                })) {
-                                arr[index].isParticipant = true;
-                            }
-                            delete arr[index].users;
-                            arr[index].isOrganizer = false;
-                            if (session.organizer &&
-                                (session.organizer.toString() == user._id.toString())) {
-                                arr[index].isOrganizer = true;
+                        var i;
+                        activityArr.forEach(function (activity, index, arr) {
+                            delete arr[index].extraDetails;
+                            arr[index].organizerName = "";
+                            i = organizerIDs.indexOf(arr[index].organizer);
+                            if (i != -1) {
+                                arr[index].organizerName = organizerArr[i].displayName;
                             }
                             delete arr[index].organizer;
+                            arr[index].nParticipants = activity.users.length;
                         });
-                        var newUserSessions = user.sessions.filter(function (sessionId) {
-                            var s = (sessionArr.find(function (session) {
-                                return (session._id.toString() == sessionId);
-                            }));
-                            if (s && !s.erased) {
-                                return true;
-                            } else {
-                                return false;
-                            }
-                        });
-                        if (user.sessions.length != newUserSessions) {
-                            users.updateOne({"_id": new ObjectId(user._id.toString())}, {
-                                $set: {
-                                    sessions: newUserSessions
-                                }
-                            }, function (err) {
-                                if (err) {
-                                    console.log('get(/session/all/user) error: collection.updateOne(users)');
-                                    return res.status(500).send({message: err.message});
-                                }
-                                res.send(sessionArr);
-                            });
-                        } else {
-                            res.send(sessionArr);
-                        }
+                        res.send(activityArr);
                     });
                 });
             });
@@ -1491,7 +1434,71 @@ app.get('/activity/all/user', ensureAuthenticated, function (req, res) {
 
 /*
  |--------------------------------------------------------------------------
- | GET /session/single - Get Data of a Single Session
+ | GET /guest/activity/all - Get all existing activities For Non-Registered user
+ |--------------------------------------------------------------------------
+ */
+app.get('/guest/activity/all', function (req, res) {
+    MongoPool.getInstance(function (db) {
+        db.collection('activities', function (err, activities) {
+            if (err != null) {
+                console.log('get(/guest/activity/all) error: db.collection(activities)');
+                return res.status(500).send({message: err.message});
+            }
+            var nowMS = (new Date()).getTime();
+            activities.find({datetimeMS: {$gte: nowMS}}).toArray(function (err, activityArr) {
+                if (err != null) {
+                    console.log('get(/guest/activity/all) error: collection.find(activities)');
+                    return res.status(500).send({message: err.message});
+                }
+                if (activityArr.length == 0) {
+                    return res.send(activityArr);
+                }
+                activityArr.sort(function (a1, a2) {
+                    return a1.datetimeMS - a2.datetimeMS;
+                });
+                db.collection('users', function (err, users) {
+                    if (err != null) {
+                        console.log('get(/guest/activity/all) error: db.collection(users)');
+                        return res.status(500).send({message: err.message});
+                    }
+                    var organizerIDs = activityArr.map(function(activity) {
+                        return new ObjectId(activity.organizer);
+                    });
+                    users.find({_id: {$in: organizerIDs}}, {
+                        fields: {
+                            displayName: 1
+                        }
+                    }).toArray(function (err, organizerArr) {
+                        if (err != null) {
+                            console.log('get(/guest/activity/all) error: collection.find(activities.organizers)');
+                            return res.status(500).send({message: err.message});
+                        }
+                        organizerIDs = organizerArr.map(function(organizer) {
+                            return organizer._id.toString();
+                        });
+                        var i;
+                        activityArr.forEach(function (activity, index, arr) {
+                            delete arr[index].extraDetails;
+                            arr[index].organizerName = "";
+                            i = organizerIDs.indexOf(arr[index].organizer);
+                            if (i != -1) {
+                                arr[index].organizerName = organizerArr[i].displayName;
+                            }
+                            delete arr[index].organizer;
+                            arr[index].nParticipants = activity.users.length;
+                            delete arr[index].users; // only for non-registered guests
+                        });
+                        res.send(activityArr);
+                    });
+                });
+            });
+        });
+    });
+});
+
+/*
+ |--------------------------------------------------------------------------
+ | GET /activity/single - Get Data of a Single Activity
  |--------------------------------------------------------------------------
  */
 app.get('/activity/single/:id', ensureAuthenticated, function (req, res) {
@@ -1506,22 +1513,22 @@ app.get('/activity/single/:id', ensureAuthenticated, function (req, res) {
                     console.log('get(/activity/single) error: collection.findOne(activityId)');
                     return res.status(500).send({message: err.message});
                 }
-                var userIDs = activity.users.map(function (userId) {
-                    return new ObjectId(userId);
-                });
+                activity.nParticipants = activity.users.length;
                 db.collection('users', function (err, users) {
                     if (err != null) {
                         console.log('get(/activity/single/user) error: db.collection(users)');
                         return res.status(500).send({message: err.message});
                     }
-
                     users.findOne({"_id": new ObjectId(activity.organizer)}, function (err, user) {
+                        activity.organizerName = user.displayName;
                         activity.organizerPhone = user.phone;
-                        activity.nParticipants = activity.users.length;
+                        var userIDs = activity.users.map(function (userId) {
+                            return new ObjectId(userId);
+                        });
                         users.find({_id: {$in: userIDs}}, {
                             fields: {
-                                displayName: 1,
-                                _id: 1
+                                _id: 1,
+                                displayName: 1
                             }
                         }).toArray(function (err, userArr) {
                             if (err != null) {
@@ -1529,6 +1536,12 @@ app.get('/activity/single/:id', ensureAuthenticated, function (req, res) {
                                 return res.status(500).send({message: err.message});
                             }
                             activity.participants = userArr;
+                            activity.participants.sort(function (p1, p2) {
+                                if (p1.displayName < p2.displayName) {return -1;}
+                                if (p1.displayName > p2.displayName) {return 1;}
+                                return 0;
+                            });
+                            delete activity.users; // create users list in client using participants list
                             res.send(activity);
                         });
                     });
@@ -1539,33 +1552,35 @@ app.get('/activity/single/:id', ensureAuthenticated, function (req, res) {
 });
 /*
  |--------------------------------------------------------------------------
- | GET /session/single - Get Data of a Single Activity For Non-Registered user
+ | GET /guest/activity/single - Get Data of a Single Activity For Non-Registered user
  |--------------------------------------------------------------------------
  */
 app.get('/guest/activity/single/:id', function (req, res) {
     MongoPool.getInstance(function (db) {
         db.collection('activities', function (err, activities) {
             if (err != null) {
-                console.log('get(/activity/single) error: db.collection(activities)');
+                console.log('get(/guest/activity/single/) error: db.collection(activities)');
                 return res.status(500).send({message: err.message});
             }
             activities.findOne({"_id": new ObjectId(req.params.id)}, function (err, activity) {
                 if (err != null) {
-                    console.log('get(/activity/single) error: collection.findOne(activityId)');
+                    console.log('get(/guest/activity/single/) error: collection.findOne(activityId)');
                     return res.status(500).send({message: err.message});
                 }
                 activity.nParticipants = activity.users.length;
-                var userIDs = activity.users.map(function (userId) {
-                    return new ObjectId(userId);
-                });
                 db.collection('users', function (err, users) {
                     if (err != null) {
-                        console.log('get(/activity/single/user) error: db.collection(users)');
+                        console.log('get(/guest/activity/single/) error: db.collection(users)');
                         return res.status(500).send({message: err.message});
                     }
                     users.findOne({"_id": new ObjectId(activity.organizer)}, function (err, user) {
+                        if (err != null) {
+                            console.log('get(/guest/activity/single/) error: db.collection(users)');
+                            return res.status(500).send({message: err.message});
+                        }
                         activity.organizerName = user.displayName;
-                        delete activity.organizerPhone;
+                        delete activity.organizer;
+                        delete activity.users;
                         res.send(activity);
                     });
 
@@ -1577,109 +1592,10 @@ app.get('/guest/activity/single/:id', function (req, res) {
 
 /*
  |--------------------------------------------------------------------------
- | GET /session/single/user - Get Data of a Single Session with user participation flag
+ | POST /activity/create - Create Activity (Group / User) & Add First User
  |--------------------------------------------------------------------------
  */
-app.get('/session/single/user', ensureAuthenticated, function (req, res) {
-    MongoPool.getInstance(function (db) {
-        db.collection('users', function (err, users) {
-            if (err != null) {
-                console.log('get(/session/single/user) error: db.collection(users)');
-                return res.status(500).send({message: err.message});
-            }
-            users.findOne({"_id": new ObjectId(req.user)}, function (err, user) {
-                if (!user) {
-                    console.log('get(/session/single/user) error: User Not Found');
-                    return res.status(400).send({message: 'User Not Found'});
-                }
-                db.collection('sessions', function (err, sessions) {
-                    if (err != null) {
-                        console.log('get(/session/single/user) error: db.collection(sessions)');
-                        return res.status(500).send({message: err.message});
-                    }
-                    sessions.findOne({"_id": new ObjectId(req.query.sessionId)}, function (err, session) {
-                        if (err != null) {
-                            console.log('get(/session/single/user) error: collection.findOne()');
-                            return res.status(500).send({message: err.message});
-                        }
-                        session.nParticipants = session.users.length;
-                        session.isParticipant = false;
-                        if (user.sessions.some(function (sessionId) {
-                                return sessionId.toString() == session._id.toString();
-                            })) {
-                            session.isParticipant = true;
-                        }
-                        session.isOrganizer = false;
-                        if (session.organizer.toString() == user._id.toString()) {
-                            session.isOrganizer = true;
-                        }
-                        delete session.organizer;
-                        var userIDs = session.users.map(function (userId) {
-                            return new ObjectId(userId);
-                        });
-                        users.find({_id: {$in: userIDs}}, {
-                            fields: {
-                                displayName: 1,
-                                _id: 1
-                            }
-                        }).toArray(function (err, userArr) {
-                            if (err != null) {
-                                console.log('get(/session/single/user) error: collection.find(session.users)');
-                                return res.status(500).send({message: err.message});
-                            }
-                            session.participants = userArr;
-                            res.send(session);
-                        });
-                    });
-                });
-            });
-        });
-    });
-});
-
-/*
- |--------------------------------------------------------------------------
- | Aux function to remove past session IDs from user
- |--------------------------------------------------------------------------
- */
-function removeOldUserActivities(activityCol, usersCol, user, newActivity, callback) {
-    var activityIDs = user.activities.slice();
-    activityIDs.forEach(function (activityId, index, arr) {
-        arr[index] = new ObjectId(activityId);
-    });
-    activityCol.find({_id: {$in: activityIDs}}, {fields: {datetimeMS: 1, _id: 1}})
-        .toArray(function (err, activityArr) {
-            if (err != null) {
-                console.log('removeOldUserActivities find() error: ' + err.message);
-                callback(null, err);
-            } else {
-                user.activities = user.activities.filter(function (activityId) {
-                    return activityArr.some(function (activity) {
-                        return (activity._id.toString() == activityId);
-                    });
-                });
-                usersCol.updateOne({"_id": new ObjectId(user._id.toString())}, {
-                    $set: {
-                        activities: user.activities
-                    }
-                }, function (err) {
-                    if (err != null) {
-                        console.log('removeOldUserActivities updateOne() error: ' + err.message);
-                        callback && callback(null, err);
-                    } else {
-                        callback && callback(newActivity);
-                    }
-                });
-            }
-        });
-};
-
-/*
- |--------------------------------------------------------------------------
- | PUT /activity/create - Create Activity (Group / User) & Add First User
- |--------------------------------------------------------------------------
- */
-app.put('/activity/create', ensureAuthenticated, single, function (req, res) {
+app.post('/activity/create', ensureAuthenticated, single, function (req, res) {
     MongoPool.getInstance(function (db) {
         db.collection('users', function (err, users) {
             if (err != null) {
@@ -1701,62 +1617,52 @@ app.put('/activity/create', ensureAuthenticated, single, function (req, res) {
                         return res.status(500).send({message: err.message});
                     }
                     var activity = {
-                        type: req.body.type,
+                        type: req.body.title, // TODO type->title in DB
                         location: req.body.location,
-                        hasImage: req.body.hasImage,
                         extraDetails: req.body.extraDetails,
                         datetimeMS: req.body.datetimeMS,
                         organizer: user._id.toString(),
-                        organizerName: user.displayName,
-                        organizerPhone: user.phone,
-                        users: [user._id.toString()],
-                        erased: false
+                        users: [user._id.toString()]
                     };
-                    if (activity.hasImage) {
-                        activity.imgName = req.body.imgName;
+                    if (req.file) {
+                        activity.imgName = req.file.filename;
                     }
-                    var nowMS = new Date();
-                    nowMS.setMinutes(Math.floor(nowMS.getMinutes() / 15) * 15);
-                    nowMS = nowMS.getTime();
-                    activities.deleteMany({datetimeMS: {$lt: nowMS}}, function (err) {
+                    activities.insertOne(activity, function (err) {
                         if (err) {
-                            console.log('post(/activity/create) error: collection.deleteMany()');
+                            console.log('post(/activity/create) error: activities.insertOne(newActivity)');
                             return res.status(500).send({message: err.message});
                         }
-                        activities.insertOne(activity, function (err) {
+                        activity.nParticipants = 1;
+                        delete activity.users;
+                        user.activities.push(activity._id.toString());
+                        users.updateOne({_id: new ObjectId(user._id)}, {
+                            $set: {
+                                activities: user.activities
+                            }
+                        }, function (err) {
                             if (err) {
-                                console.log('post(/activity/create) error: collection.insertOne()');
+                                console.log('post(/activity/create) error: users.updateOne(user.activities)');
                                 return res.status(500).send({message: err.message});
                             }
-                            activity.nParticipants = 1;
-                            activity.isParticipant = true;
-                            delete activity.users;
-                            user.activities.push(activity._id.toString());
-                            removeOldUserActivities(activities, users, user, activity, function (newActivity, err) {
-                                if (err != null) {
-                                    return res.status(500).send({message: err.message});
-                                }
-                                newActivity.isOrganizer = true;
-                                if (newActivity.hasImage) {
-                                    var bodyStream = fs.createReadStream(req.file.path);
-                                    var params = {
-                                        Body: bodyStream,
-                                        Bucket: config.S3_BUCKET,
-                                        Key: newActivity._id + '/' + newActivity.imgName
-                                    };
-                                    s3.putObject(params, function (err, data) {
-                                        if (err) {
-                                            console.log(err, err.stack); // an error occurred
-                                            res.status(500).send({message: err.message});
-                                        } else {
-                                            console.log(data); // successful response
-                                            res.send(newActivity);
-                                        }
-                                    });
-                                } else {
-                                    res.send(newActivity);
-                                }
-                            });
+                            if (req.file) {
+                                var bodyStream = fs.createReadStream(req.file.path);
+                                var params = {
+                                    Body: bodyStream,
+                                    Bucket: config.S3_BUCKET,
+                                    Key: activity._id + '/' + req.file.filename
+                                };
+                                s3.putObject(params, function (err, data) {
+                                    if (err) {
+                                        console.log(err, err.stack); // an error occurred
+                                        res.status(500).send({message: err.message});
+                                    } else {
+                                        console.log(data); // successful response
+                                        res.send(activity);
+                                    }
+                                });
+                            } else {
+                                res.send(activity);
+                            }
                         });
                     });
                 });
@@ -1797,54 +1703,82 @@ app.post('/activity/update', ensureAuthenticated, single, function (req, res) {
                             console.log('post(/activity/update) error: db.collection(activity)');
                             return res.status(500).send({message: 'Activity Does Not Belong to User'});
                         }
-                        var nowMS = new Date();
-                        nowMS.setMinutes(Math.floor(nowMS.getMinutes() / 15) * 15);
-                        nowMS = nowMS.getTime();
-                        activities.deleteMany({datetimeMS: {$lt: nowMS}}, function (err) {
-                            if (err) {
-                                console.log('post(/activity/update) error: collection.deleteMany()');
-                                return res.status(500).send({message: err.message});
-                            }
-                            activities.updateOne({"_id": new ObjectId(activity._id.toString())}, {
-                                $set: {
-                                    type: req.body.type,
-                                    location: req.body.location,
-                                    hasImage: req.body.hasImage,
-                                    extraDetails: req.body.extraDetails,
-                                    datetimeMS: req.body.datetimeMS,
-                                    imgName: req.body.imgName
-                                }
-                            },function(err){
-                                if (err) {
-                                    console.log('post(/activity/update) error: collection.updateOne()');
-                                    return res.status(500).send({message: err.message});
-                                }
-                                removeOldUserActivities(activities, users, user, activity, function (editedActivity, err) {
+                        if (req.body.imgChange) { // Added / removed / changed / removed and re-added
+                            if (req.file) { // Handle add / update / remove and re-add image
+                                activities.updateOne({"_id": new ObjectId(activity._id.toString())}, {
+                                    $set: {
+                                        type: req.body.title,
+                                        location: req.body.location,
+                                        extraDetails: req.body.extraDetails,
+                                        datetimeMS: req.body.datetimeMS,
+                                        imgName: req.file.filename // Update image name even if remained the same
+                                    }
+                                }, function(err){
                                     if (err) {
+                                        console.log('post(/activity/update) error: activities.updateOne(newActivity) - image change');
                                         return res.status(500).send({message: err.message});
                                     }
-                                    if (editedActivity.hasImage) {
-                                        var bodyStream = fs.createReadStream(req.file.path);
-                                        var params = {
-                                            Body: bodyStream,
-                                            Bucket: config.S3_BUCKET,
-                                            Key: editedActivity._id + '/' + editedActivity.imgName
-                                        };
-                                        s3.putObject(params, function (err, data) {
-                                            if (err) {
-                                                console.log(err, err.stack); // an error occurred
-                                                res.status(500).send({message: err.message});
-                                            } else {
-                                                console.log(data); // successful response
-                                                res.send(editedActivity);
-                                            }
-                                        });
-                                    } else {
-                                        res.send(editedActivity);
-                                    }
+                                    var bodyStream = fs.createReadStream(req.file.path);
+                                    var params = {
+                                        Body: bodyStream,
+                                        Bucket: config.S3_BUCKET,
+                                        Key: activity._id + '/' + req.file.filename
+                                    };
+                                    s3.putObject(params, function (err, data) { // Same S3 SDK call for both adding / updating an image (no error if existed)
+                                        if (err) {
+                                            console.log(err, err.stack); // an error occurred
+                                            return res.status(500).send({message: err.message});
+                                        }
+                                        console.log(data); // successful response
+                                        return res.send(activity);
+                                    });
                                 });
+                            } else { // Handle remove image
+                                activities.updateOne({"_id": new ObjectId(activity._id.toString())}, {
+                                    $set: {
+                                        type: req.body.title,
+                                        location: req.body.location,
+                                        extraDetails: req.body.extraDetails,
+                                        datetimeMS: req.body.datetimeMS
+                                    }, 
+                                    $unset: {
+                                        imgName: "" // Remove imgName field
+                                    }
+                                }, function(err){
+                                    if (err) {
+                                        console.log('post(/activity/update) error: activities.updateOne(newActivity) - image change');
+                                        return res.status(500).send({message: err.message});
+                                    }
+                                    var params = {
+                                        Bucket: config.S3_BUCKET, 
+                                        Key: activity._id + '/' + req.file.filename
+                                    };
+                                    s3.deleteObject(params, function(err, data) {
+                                        if (err) {
+                                            console.log(err, err.stack); // an error occurred
+                                            res.status(500).send({message: err.message});
+                                        }
+                                        console.log(data); // successful response
+                                        return res.send(activity);
+                                     });
+                                });
+                            }
+                        } else { // Image remained the same (not added / removed / changed / removed and re-added), no S3 calls required
+                            activities.updateOne({"_id": new ObjectId(activity._id.toString())}, {
+                                $set: {
+                                    type: req.body.title,
+                                    location: req.body.location,
+                                    extraDetails: req.body.extraDetails,
+                                    datetimeMS: req.body.datetimeMS
+                                }
+                            }, function(err){
+                                if (err) {
+                                    console.log('post(/activity/update) error: activities.updateOne(newActivity) - no image change');
+                                    return res.status(500).send({message: err.message});
+                                }
+                                res.send(activity);
                             });
-                        });
+                        }
                     });
                 });
             });
@@ -1854,7 +1788,7 @@ app.post('/activity/update', ensureAuthenticated, single, function (req, res) {
 
 /*
  |--------------------------------------------------------------------------
- | POST /activity/join - Add User to Existing activity
+ | POST /activity/join - Add User to Existing Activity
  |--------------------------------------------------------------------------
  */
 app.post('/activity/join', ensureAuthenticated, function (req, res) {
@@ -1880,7 +1814,7 @@ app.post('/activity/join', ensureAuthenticated, function (req, res) {
                     }
                     activities.findOne({"_id": new ObjectId(req.body.activityId)}, function (err, activity) {
                         if (err) {
-                            console.log('post(/activity/join) error: collection.findOne(sessionId)');
+                            console.log('post(/activity/join) error: collection.findOne(activityId)');
                             return res.status(500).send({message: err.message});
                         }
                         if (!activity) {
@@ -1893,10 +1827,16 @@ app.post('/activity/join', ensureAuthenticated, function (req, res) {
                             console.log('post(/activity/join) error: User is already a participant');
                             return res.status(408).send({message: 'User is already a participant'});
                         }
+                        if (user.activities.some(function (activityId) {
+                                return activityId.toString() == activity._id.toString();
+                            })) {
+                            console.log('post(/activity/join) error: User already marked RSVP');
+                            return res.status(406).send({message: 'User already marked RSVP'});
+                        }
                         activity.users.push(user._id.toString());
                         activities.updateOne({"_id": new ObjectId(activity._id.toString())}, {
                             $set: {
-                                users: activity.users || []
+                                users: activity.users
                             }
                         }, function (err) {
                             if (err) {
@@ -1904,11 +1844,13 @@ app.post('/activity/join', ensureAuthenticated, function (req, res) {
                                 return res.status(500).send({message: err.message});
                             }
                             user.activities.push(activity._id.toString());
-                            var nowMS = new Date();
-                            nowMS.setMinutes(Math.floor(nowMS.getMinutes() / 15) * 15);
-                            nowMS = nowMS.getTime();
-                            removeOldUserActivities(activities, users, user, activity, function (activity, err) {
-                                if (err != null) {
+                            users.updateOne({_id: new ObjectId(user._id)}, {
+                                $set: {
+                                    activities: user.activities
+                                }
+                            }, function (err) {
+                                if (err) {
+                                    console.log('post(/activity/join) error: users.updateOne(user.activities)');
                                     return res.status(500).send({message: err.message});
                                 }
                                 return res.status(200).send(user);
@@ -1923,7 +1865,7 @@ app.post('/activity/join', ensureAuthenticated, function (req, res) {
 
 /*
  |--------------------------------------------------------------------------
- | POST /session/leave - Remove User from Existing Session
+ | POST /activity/leave - Remove User from Existing Activity
  |--------------------------------------------------------------------------
  */
 app.post('/activity/leave', ensureAuthenticated, function (req, res) {
@@ -1956,50 +1898,43 @@ app.post('/activity/leave', ensureAuthenticated, function (req, res) {
                             console.log('post(/activity/leave) error: No such activity');
                             return res.status(409).send({message: 'No such activity'});
                         }
-                        var nowMS = new Date();
-                        nowMS.setMinutes(Math.floor(nowMS.getMinutes() / 15) * 15);
-                        nowMS = nowMS.getTime();
-                        var activityFoundWithinUser = false;
-                        for (var j = 0; j < user.activities.length; j++) {
-                            if (user.activities[j].toString() === activity._id.toString()) {
-                                activityFoundWithinUser = true;
-                                user.activities.splice(j, 1);
-                                removeOldUserActivities(activities, users, user, activity, function (activity, err) {
-                                    if (err) {
-                                        return res.status(500).send({message: err.message});
-                                    }
-                                    var userFoundWithinActivity = false;
-                                    for (var i = 0; i < activity.users.length; i++) {
-                                        if (activity.users[i].toString() === user._id.toString()) {
-                                            userFoundWithinActivity = true;
-                                            activity.users.splice(i, 1);
-                                            activities.updateOne({"_id": new ObjectId(activity._id.toString())}, {
-                                                $set: {
-                                                    users: activities.users || [],
-                                                    erased: req.body.isOrganizer
-                                                }
-                                            }, function (err) {
-                                                if (err) {
-                                                    console.log('post(/activities/leave) error: collection.updateOne(activities)');
-                                                    return res.status(500).send({message: err.message});
-                                                }
-                                                return res.status(200).send(activity._id);
-                                            });
-                                            break;
-                                        }
-                                    }
-                                    if (!userFoundWithinActivity) {
-                                        console.log('post(/activity/leave) error: activity does not contain user');
-                                        return res.status(407).send({message: 'activity does not contain user'});
-                                    }
-                                });
-                                break;
-                            }
-                        }
-                        if (!activityFoundWithinUser) {
-                            console.log('post(/session/leave) error: User does not contain activity');
+                        var activityIndex = user.activities.findIndex(function(userActId) { 
+                            return (userActId == activity._id.toString());
+                        });
+                        if (activityIndex == -1) {
+                            console.log('post(/activity/leave) error: User does not contain activity');
                             return res.status(406).send({message: 'User does not contain activity'});
                         }
+                        var userIndex = activity.users.findIndex(function(actUserId) { 
+                            return (actUserId == user._id.toString());
+                        });
+                        if (userIndex == -1) {
+                            console.log('post(/activity/leave) error: activity does not contain user');
+                            return res.status(407).send({message: 'activity does not contain user'});;
+                        }
+                        user.activities.splice(activityIndex, 1);
+                        users.updateOne({_id: new ObjectId(user._id)}, {
+                            $set: {
+                                activities: user.activities
+                            }
+                        }, function (err) {
+                            if (err) {
+                                console.log('post(/activity/leave) error: users.updateOne(user.activities)');
+                                return res.status(500).send({message: err.message});
+                            }
+                            activity.users.splice(userIndex, 1);
+                            activities.updateOne({"_id": new ObjectId(activity._id.toString())}, {
+                                $set: {
+                                    users: activity.users
+                                }
+                            }, function (err) {
+                                if (err) {
+                                    console.log('post(/activities/leave) error: collection.updateOne(activities)');
+                                    return res.status(500).send({message: err.message});
+                                }
+                                return res.status(200).send(activity._id);
+                            });
+                        });
                     });
                 });
             });
@@ -2012,19 +1947,37 @@ app.post('/activity/leave', ensureAuthenticated, function (req, res) {
  | POST /remark - Append remark to remarks collection
  |--------------------------------------------------------------------------
  */
-app.post('/remark', function (req, res) {
+app.post('/api/remarks',ensureAuthenticated, function (req, res) {
     MongoPool.getInstance(function (db) {
-        db.collection('remarks', function (err, remarks) {
-            var remark = {
-                text: req.body.remark
+        db.collection('users', function (err, users) {
+            if (err !== null) {
+                console.log('post(/api/remarks) error: db.collection(users)');
+                return res.status(500).send({message: err.message});
             }
-            remarks.insertOne(remark, function (err) {
-                if (err) {
-                    console.log('post(/remark) error: collection.insertOne()');
+            users.findOne({"_id": new ObjectId(req.user)}, function (err, user) {
+                if (err !== null) {
+                    console.log('post(/api/remarks) error: collection.findOne(userId)');
                     return res.status(500).send({message: err.message});
                 }
-            });
-        });
+                db.collection('remarks', function (err, remarks) {
+                    var remark = {
+                        text: req.body.remark,
+                        userId: user._id.toString()
+                    };
+                    remarks.insertOne(remark, function (err) {
+                        if (err) {
+                            console.log('post(/api/remarks) error: collection.insertOne()');
+                            return res.status(500).send({message: err.message});
+                        }
+                        else{
+                            return res.status(200).end();
+                        }
+                    });
+                });
+
+            })
+        })
+
     });
 });
 

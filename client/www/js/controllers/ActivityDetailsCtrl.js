@@ -1,33 +1,15 @@
 angular.module('ourBoard').controller('ActivityDetailsCtrl',
     function ($scope, $ionicLoading, dataSrvc, $stateParams, activitySrvc, $rootScope, $ionicHistory, authSrvc, $ionicScrollDelegate, $ionicTabsDelegate, modalSrvc) {
 
-        init();
-
-        function init() {
-            if ($stateParams.joinActivity && $stateParams.activityId) {
-                authSrvc.getUser().then(joinActivity).then(fetchData);
-            }
-            else {
-                authSrvc.getUser().then(fetchData);
-            }
-        }
-
-
-        function joinActivity() {
-            return dataSrvc.api({
-                type: 'joinActivity',
-                args: {
-                    activityId: $stateParams.activityId
-                }
-            })
-        }
+        console.log($stateParams);
+        authSrvc.getUser().then(fetchData);
 
         function fetchData(userData) {
             $scope.userData = userData;
             $ionicLoading.show({
                 template: 'טוען פעילות'
             });
-            return dataSrvc.api({
+            dataSrvc.api({
                 type: $scope.userData ? 'getActivity' : 'getActivityAsGuest',
                 urlParamsObj: {
                     activityId: $stateParams.activityId
@@ -35,11 +17,19 @@ angular.module('ourBoard').controller('ActivityDetailsCtrl',
             }).then(function (res) {
                 $ionicLoading.hide();
                 $scope.activity = res.data;
+                if ($scope.activity && $scope.activity.participants) {
+                    $scope.activity.users = $scope.activity.participants.map(function(participant) {
+                        return participant._id.toString();
+                    });
+                }
+                if ($scope.userData && $stateParams.joinActivity && $stateParams.activityId) {
+                    if ($stateParams.activityId == $scope.activity._id.toString()) {
+                        $scope.activity.joinUserAfterLogin = true; // Mark for activitySrvc (mark for activitySrvc, make 'join' server call after setting isAttending)
+                    } else {
+                        // TODO error: request to join the wrong activity
+                    }
+                }
                 activitySrvc.processActivityData(userData, $scope.activity);
-                // //for testing TODO Remove
-                // for(var i=1 ; i<20 ; i++){
-                //     $scope.activity.participants.push({_id:i, displayName: 'asdasd1'})
-                // }
                 if ($stateParams.showOrganizerPhone) {
                     $scope.showOrganizerPhone = true;
                 }
@@ -67,14 +57,12 @@ angular.module('ourBoard').controller('ActivityDetailsCtrl',
         $scope.$on('$ionicView.beforeEnter', function (event, viewData) {
             viewData.enableBack = true;
             $ionicTabsDelegate.showBar(false);
-            init();
         });
         $scope.$on('$ionicView.afterEnter', function (event, viewData) {
-
             $scope.participantListElementTop = document.getElementById('participant-list').offsetTop;
         });
         $scope.$on("$ionicView.beforeLeave", function () {
-            $ionicTabsDelegate.showBar(true);
+            $ionicTabsDelegate.showBar(true); // TODO deosn't work!!
         });
 
         $scope.participantsClick = function () {
@@ -83,8 +71,7 @@ angular.module('ourBoard').controller('ActivityDetailsCtrl',
                     redirectionState: 'tab.activity-details',
                     redirectionStateParams: {
                         showParticipants: true,
-                        activityId: $stateParams.activityId,
-                        originNotFromActivityFeed: true
+                        activityId: $stateParams.activityId
                     }
                 });
             }
@@ -98,8 +85,7 @@ angular.module('ourBoard').controller('ActivityDetailsCtrl',
                     redirectionState: 'tab.activity-details',
                     redirectionStateParams: {
                         showOrganizerPhone: true,
-                        activityId: $stateParams.activityId,
-                        originNotFromActivityFeed: true
+                        activityId: $stateParams.activityId
                     }
                 });
             }
@@ -117,6 +103,22 @@ angular.module('ourBoard').controller('ActivityDetailsCtrl',
 
         $rootScope.$on('ACTIVITY_EDITED', function (event) {
             fetchData($scope.userData);
-        })
+        });
+
+        $rootScope.$on('ADD_USER_TO_ACTIVITY_DATA', function (event, args) {
+            if ($scope.activity._id.toString() == args.activityId) {
+                activitySrvc.addUserToActivityData($scope.userData, $scope.activity);
+            } else {
+                // TODO error: request to add user to the data of the wrong activity
+            }
+        });
+
+        $rootScope.$on('REMOVE_USER_FROM_ACTIVITY_DATA', function (event, args) {
+            if ($scope.activity._id.toString() == args.activityId) {
+                activitySrvc.removeUserFromActivityData($scope.userData, $scope.activity);
+            } else {
+                // TODO error: request to remove user from the data of non-existing activity
+            }
+        });
 
     });

@@ -1,10 +1,9 @@
 angular.module('ourBoard').directive('signUpDrtv',
-    function ($state, authSrvc, $rootScope, $auth, authSrvc, $ionicPopup, actionsAfterSignupSrvc, modalSrvc) {
+    function ($state, $rootScope, $auth, authSrvc, $ionicPopup, actionsAfterSignupSrvc, modalSrvc) {
         return {
             restrict: 'E',
             templateUrl: 'templates/signUpView.html',
             link: function ($scope, element, attrs) {
-                var emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
                 $scope.signupData = {};
                 $scope.errors = [];
 
@@ -13,7 +12,7 @@ angular.module('ourBoard').directive('signUpDrtv',
                     if (!$scope.signupData.displayName || $scope.signupData.displayName.length < 3) {
                         $scope.errors.push('אנא הזן שם מלא תקין');
                     }
-                    if (!$scope.signupData.email || !emailPattern.test($scope.signupData.email)) {
+                    if (!$scope.signupData.email || !authSrvc.emailPattern.test($scope.signupData.email)) {
                         $scope.errors.push('אנא הזן כתובת אימייל תקינה');
                     }
                     if (!$scope.signupData.password || $scope.signupData.password.length < 6) {

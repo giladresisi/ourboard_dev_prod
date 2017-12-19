@@ -1,0 +1,48 @@
+<div class="create-new-activity">
+    <div class="bar bar-header bar-calm">
+        <h1 class="title">עריכת פרטים אישיים</h1>
+    </div>
+    <ion-list class="list text-right">
+        <label class="item item-input item-stacked-label">
+            <span class="input-label">
+                <span>שם</span>
+                <!--<span class="mandatory">*</span>-->
+            </span>
+            <input ng-model="profileData.displayName" type="text" placeholder="">
+        </label>
+        <label class="item item-input item-stacked-label">
+            <span class="input-label">
+                <span>טלפון</span>
+                <!--<span class="mandatory">*</span>-->
+            </span>
+            <input ng-model="profileData.phone" type="text" placeholder="הוסף מספר טלפון">
+        </label>
+        <label ng-show="!userData.facebook" class="item item-input item-stacked-label">
+            <span class="input-label">
+                <span>אימייל</span>
+                <!--<span class="mandatory">*</span>-->
+            </span>
+            <input class="disabled" ng-model="profileData.email" disabled type="text" placeholder="הוסף כתובת אימייל">
+        </label>
+        <ion-checkbox ng-show="!userData.facebook" class="item-checkbox-right" ng-model="switchPass">החלף סיסמא</ion-checkbox>
+        <div ng-if="!!switchPass">
+            <label class="item item-input item-stacked-label">
+                <input ng-model="profileData.password" type="text" placeholder="סיסמא ישנה">
+            </label>
+            <label class="item item-input item-stacked-label">
+                <input ng-model="profileData.newPassword" type="text" placeholder="סיסמא חדשה">
+            </label>
+        </div>
+
+
+    </ion-list>
+    <div class="errors">
+        <div ng-repeat="error in errors track by $index">
+            {{error}}
+        </div>
+    </div>
+    <div class="bar bar-footer bar-stable">
+        <button class="button button-right button-calm" ng-click="updateProfile()">עדכן פרטים</button>
+        <button class="button button-left button-light" ng-click="cancel()">ביטול</button>
+    </div>
+</div>

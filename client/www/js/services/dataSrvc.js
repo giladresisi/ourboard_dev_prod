@@ -1,5 +1,5 @@
 angular.module('ourBoard').service('dataSrvc',
-    function ($http, apiMap, ENV, $ionicLoading) {
+    function ($http, apiMap, ENV, $ionicLoading, $q, $ionicPopup) {
         this.api = function (cfg) {
             if (!apiMap[cfg.type].disableLoading) {
                 $ionicLoading.show();
@@ -24,7 +24,10 @@ angular.module('ourBoard').service('dataSrvc',
                 if (!apiMap[cfg.type].disableLoading) {
                     $ionicLoading.hide();
                 }
-                return err;
+                $ionicPopup.alert({
+                    title: err.data.message
+                });
+                return $q.reject(err);
             });
         };
 

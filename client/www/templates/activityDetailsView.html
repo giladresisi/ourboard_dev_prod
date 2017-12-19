@@ -8,7 +8,7 @@
         <h1 class="title">{{activity.type}}</h1>
         <div class="buttons back-btn btn">
             <h2>
-                <i class="icon ion-arrow-left-c" ng-click="customBack()"></i>
+                <i class="icon ion-arrow-right-c" ng-click="customBack()"></i>
             </h2>
         </div>
     </ion-header-bar>
@@ -79,8 +79,8 @@
             </div>
             <div class="col col-90 text-col">
                 <div class="positive" ng-click="participantsClick()"> {{activity.nParticipants}}  משתתפים
-                    <i ng-if="!showParticipants && activity.users.length > 0" class="ion-chevron-down"></i>
-                    <i ng-if="showParticipants && activity.users.length > 0" class="ion-chevron-up"></i></div>
+                    <i ng-if="!showParticipants && activity.nParticipants > 0" class="ion-chevron-down"></i>
+                    <i ng-if="showParticipants && activity.nParticipants > 0" class="ion-chevron-up"></i></div>
                 <div class="participant {{(participant._id == userData.id) ? 'balanced' : ''}}"
                      ng-show="showParticipants"
                      ng-repeat="participant in activity.participants track by participant._id">

@@ -2,7 +2,7 @@ angular.module('ourBoard').directive('editActivityDrtv',
     function (dataSrvc, $rootScope, $stateParams) {
         return {
             restrict: 'E',
-            templateUrl: 'templates/createNewActivityView.html',
+            templateUrl: 'templates/createEditNewActivityView.html',
             link: function ($scope, element, attrs) {
                 $scope.errors = [];
                 $scope.edit = true;
@@ -10,7 +10,6 @@ angular.module('ourBoard').directive('editActivityDrtv',
                 initData();
 
                 function initData() {
-                    $scope.newActivityData = convertDataFormat($rootScope.activeModal.args);
                     $scope.nameOptions = [
                         {
                             id: 1,
@@ -28,7 +27,8 @@ angular.module('ourBoard').directive('editActivityDrtv',
                             id: 'FREE_TEXT',
                             display : 'טקסט חופשי'
                         }
-                    ]
+                    ];
+                    $scope.newActivityData = convertDataFormat($rootScope.activeModal.args);
                 }
 
                 $scope.updateActivity = function () {
@@ -58,7 +58,7 @@ angular.module('ourBoard').directive('editActivityDrtv',
                         dataSrvc.api({
                             type: 'updateActivity',
                             args: {
-                                type: $scope.newActivityData.nameId === 'FREE_TEXT' ? $scope.newActivityData.freeName : _.findWhere($scope.nameOptions, {id: parseInt($scope.newActivityData.nameId)}).display,
+                                title: $scope.newActivityData.nameId === 'FREE_TEXT' ? $scope.newActivityData.freeName : _.findWhere($scope.nameOptions, {id: parseInt($scope.newActivityData.nameId)}).display,
                                 location: $scope.newActivityData.location,
                                 hasImage: !!$scope.newActivityData.image,
                                 extraDetails: $scope.newActivityData.additionalInfo,
@@ -81,13 +81,32 @@ angular.module('ourBoard').directive('editActivityDrtv',
                 };
 
                 function convertDataFormat(obj) {
+                    var nameAndId = convertNameAndId(obj);
                     return {
-                        freeName: obj.type,
-                        nameId: 'FREE_TEXT',
+                        freeName: nameAndId.freeName,
+                        nameId: nameAndId.nameId,
                         location: obj.location,
                         image: obj.hasImage,
                         additionalInfo: obj.extraDetails,
                         datetimeValue: obj.datetimeMS
+                    }
+                };
+
+                function convertNameAndId(obj) {
+                    var nameId = 'FREE_TEXT';
+                    var freeName = undefined;
+                    for (i = 0; i < $scope.nameOptions.length - 1; i++) {
+                        if (obj.type == $scope.nameOptions[i].display) {
+                            nameId = i + 1
+                            break;;
+                        }
+                    }
+                    if (nameId == 'FREE_TEXT') {
+                        freeName = obj.type;
+                    }
+                    return {
+                        freeName: freeName,
+                        nameId: nameId
                     }
                 }
             }

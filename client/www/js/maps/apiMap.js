@@ -3,8 +3,20 @@ angular.module('ourBoard').value('apiMap', {
         url: '/api/me',
         method: 'GET'
     },
+    updateUser: {
+        url: '/api/me',
+        method: 'POST'
+    },
+    remarks: {
+        url: '/api/remarks',
+        method: 'POST'
+    },
     getActivities: {
         url: '/activity/all',
+        method: 'GET'
+    },
+    getActivitiesAsGuest: {
+        url: '/guest/activity/all',
         method: 'GET'
     },
     getActivityAsGuest: {
@@ -17,16 +29,17 @@ angular.module('ourBoard').value('apiMap', {
     },
     joinActivity: {
         url: '/activity/join',
-        method: 'POST'
+        method: 'POST',
+        disableLoading: true
     },
     leaveActivity: {
         urlTemplate: '/activity/leave',
         method: 'POST',
-        disableLoading: false //example of use
+        disableLoading: true
     },
     createNewActivity: {
         urlTemplate: '/activity/create',
-        method: 'PUT'
+        method: 'POST'
     },
     updateActivity: {
         urlTemplate: '/activity/update',

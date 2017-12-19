@@ -1,0 +1,37 @@
+<div class="remarks">
+    <div class="bar bar-header bar-calm">
+        <h1 class="title">כתבו לנו</h1>
+    </div>
+    <div class="list text-right">
+        <div class="text-center title-text">
+
+            אהבתם? לא אהבתם?
+            <br>
+            יש משהו שחייבים לשנות / להוסיף / להסיר?
+            <br>
+            נשמח לשמוע! תודה :)
+
+        </div>
+        <label class="item item-input item-stacked-label">
+            <span class="input-label">
+            </span>
+            <textarea
+                class="message"
+                rows="4"
+                ng-model="remark"
+                placeholder="כתבו לנו את דעתכם...">
+            </textarea>
+        </label>
+
+    </div>
+    <div class="errors">
+        <div ng-repeat="error in errors track by $index">
+            {{error}}
+        </div>
+    </div>
+    <div class="bar bar-footer bar-stable">
+        <button class="button button-right button-calm" ng-click="submitRemarks()">שלח
+        </button>
+        <button class="button button-left button-light" ng-click="cancel()">ביטול</button>
+    </div>
+</div>

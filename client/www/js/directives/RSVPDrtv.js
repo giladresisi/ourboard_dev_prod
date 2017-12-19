@@ -15,21 +15,22 @@ angular.module('ourBoard').directive('rsvpDrtv',
                             if (!userData) {
                                 //change back to false
                                 $scope.isAttending = false;
+                                var params = {
+                                    activityId: $scope.activityId,
+                                    joinActivity: true
+                                }
                                 modalSrvc.showGuestRestrictedActionModal('RSVP', {
                                     redirectionState: $scope.redirectionState,
-                                    redirectionStateParams: {activityId: $scope.activityId}
+                                    redirectionStateParams: params
                                 });
-                            }
-                            else {
+                            } else {
                                 dataSrvc.api({
                                     type: 'joinActivity',
                                     args: {
                                         activityId: $scope.activityId
                                     }
                                 }).then(function () {
-                                    if($scope.source !== 'activity_board'){
-                                        $rootScope.$broadcast('REFRESH_ACTIVITY_BOARD');
-                                    }
+                                    $rootScope.$broadcast('ADD_USER_TO_ACTIVITY_DATA', {activityId: $scope.activityId});
                                 });
                             }
                         });
@@ -43,14 +44,12 @@ angular.module('ourBoard').directive('rsvpDrtv',
                                         activityId: $scope.activityId
                                     }
                                 }).then(function () {
-                                    if($scope.source !== 'activity_board'){
-                                        $rootScope.$broadcast('REFRESH_ACTIVITY_BOARD');
-                                    }
+                                    $rootScope.$broadcast('REMOVE_USER_FROM_ACTIVITY_DATA', {activityId: $scope.activityId});
                                 });
                             }
                         })
                     }
-                })
+                });
             }
         }
     });

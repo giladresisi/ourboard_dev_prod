@@ -10,6 +10,7 @@
     "satellizer": "^0.15.5",
     "angular-local-storage": "^0.7.1",
     "ion-datetime-picker": "^0.5.2",
-    "angular-moment": "^1.1.0"
+    "angular-moment": "^1.1.0",
+    "ng-file-upload": "^12.2.13"
   }
 }

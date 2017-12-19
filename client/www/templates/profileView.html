@@ -50,7 +50,7 @@
                     <span> טלפון: </span> <span>{{userData.phone}}</span>
                 </div>
             </div>
-            <div class="row row-no-padding">
+            <div ng-show="!userData.facebook" class="row row-no-padding">
                 <div class="col col-10 text-col icon-col">
                     <i class="ion-at"></i>
                 </div>
@@ -68,7 +68,7 @@
                    כתבו לנו רעיונות לשיפור ושדרוג האפליקציה
                 </div>
                 <div class="col col-20 text-col inline-btn">
-                    <button class="button button-calm contact-us-btn" ng-click="">
+                    <button class="button button-calm contact-us-btn" ng-click="remarks()">
                         <i class="ion-ios-email-outline"></i>
                     </button>
                 </div>
