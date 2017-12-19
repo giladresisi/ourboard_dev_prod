@@ -1,5 +1,5 @@
 angular.module('ourBoard').directive('createNewActivityDrtv',
-    function (dataSrvc, $rootScope) {
+    function (dataSrvc, $rootScope, Upload) {
         return {
             restrict: 'E',
             templateUrl: 'templates/createEditNewActivityView.html',

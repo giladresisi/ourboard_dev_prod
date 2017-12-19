@@ -1,5 +1,5 @@
 angular.module('ourBoard').controller('ActivityDetailsCtrl',
-    function ($scope, $ionicLoading, dataSrvc, $stateParams, activitySrvc, $rootScope, $ionicHistory, authSrvc, $ionicScrollDelegate, $ionicTabsDelegate, modalSrvc) {
+    function ($scope, $ionicLoading, dataSrvc, $stateParams, activitySrvc, $rootScope, $state, authSrvc, $ionicScrollDelegate, $ionicTabsDelegate, modalSrvc) {
 
         console.log($stateParams);
         authSrvc.getUser().then(fetchData);
@@ -98,7 +98,7 @@ angular.module('ourBoard').controller('ActivityDetailsCtrl',
             modalSrvc.showModal('editActivityDrtv', $scope.activity);
         };
         $scope.customBack = function () {
-            $ionicHistory.goBack(-1);
+            $state.go('tab.activity-board');
         };
 
         $rootScope.$on('ACTIVITY_EDITED', function (event) {

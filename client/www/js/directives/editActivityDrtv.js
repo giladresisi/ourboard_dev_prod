@@ -1,5 +1,5 @@
 angular.module('ourBoard').directive('editActivityDrtv',
-    function (dataSrvc, $rootScope, $stateParams) {
+    function (dataSrvc, $rootScope, $stateParams, Upload) {
         return {
             restrict: 'E',
             templateUrl: 'templates/createEditNewActivityView.html',
@@ -68,7 +68,6 @@ angular.module('ourBoard').directive('editActivityDrtv',
                         }).then(function (res) {
                             initData();
                             $rootScope.activeModal.hide();
-                            $rootScope.$broadcast('REFRESH_ACTIVITY_BOARD');
                             $rootScope.$broadcast('ACTIVITY_EDITED');
                         });
                     }

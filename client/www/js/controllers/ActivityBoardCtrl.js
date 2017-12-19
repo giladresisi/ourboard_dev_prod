@@ -56,6 +56,10 @@ angular.module('ourBoard').controller('ActivityBoardCtrl',
             }
         }));
 
+        $scope.watchers.push($rootScope.$on('REFRESH_ACTIVITY_BOARD', function () {
+            authSrvc.getUser().then(fetchData);
+        }));
+
         $scope.openCreateNewActivityModal = function () {
             authSrvc.getUser().then(function (userData) {
                 if (!userData) {
