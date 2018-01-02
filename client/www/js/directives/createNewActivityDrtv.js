@@ -6,6 +6,11 @@ angular.module('ourBoard').directive('createNewActivityDrtv',
             link: function ($scope, element, attrs) {
                 $scope.errors = [];
 
+                $scope.resizeObj = {
+                    'width': '100%',
+                    'height': 'auto'
+                }
+
                 initData();
 
                 function initData() {
@@ -14,8 +19,7 @@ angular.module('ourBoard').directive('createNewActivityDrtv',
                         nameId: null,
                         freeName: '',
                         location: '',
-                        additionalInfo: '',
-                        image:''
+                        additionalInfo: ''
                     };
                     $scope.nameOptions = [
                         {
@@ -34,7 +38,8 @@ angular.module('ourBoard').directive('createNewActivityDrtv',
                             id: 'FREE_TEXT',
                             display : 'טקסט חופשי'
                         }
-                    ]
+                    ];
+                    $scope.imageBtnText = 'הוסף תמונה';
                 }
 
                 $scope.createActivity = function () {
@@ -82,7 +87,21 @@ angular.module('ourBoard').directive('createNewActivityDrtv',
                     $scope.errors = [];
                     initData();
                     $rootScope.activeModal.hide();
-                }
+                };
+
+                $scope.clearImage = function() {
+                    $scope.newActivityData.image = null;
+                    console.log('image cleared');
+                    $scope.imageBtnText = 'הוסף תמונה';
+                };
+
+                $scope.selectImg = function(file) {
+                    $scope.imageBtnText = 'החלף תמונה';
+                    if (file) {
+                        $scope.newActivityData.image = file;
+                        console.log('selected image: ' + $scope.newActivityData.image.name);
+                    }
+                };
             }
         }
     });

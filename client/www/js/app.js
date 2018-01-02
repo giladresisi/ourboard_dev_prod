@@ -16,6 +16,7 @@ angular.module('ourBoard', [
     .constant('ENV', {
         DEV_URL: '',
         API_URL:'http://ourboarddev-env.us-west-2.elasticbeanstalk.com'
+        // API_URL: 'http://10.0.0.13:4000'
         // API_URL: 'http://192.168.1.4:4000'
     })
 

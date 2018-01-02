@@ -1,6 +1,7 @@
 <ion-view view-title="לוח פעילויות בחריש" align="center" class="activity-board">
     <div ng-click="openCreateNewActivityModal()" class="floating-button"><i class="ion-plus lg"></i></div>
     <ion-content class="content">
+    	<ion-refresher on-refresh="doRefresh()"></ion-refresher>
         <activity-board-item-drtv
             ng-repeat="activity in activities track by activity._id"
             activity="activity">

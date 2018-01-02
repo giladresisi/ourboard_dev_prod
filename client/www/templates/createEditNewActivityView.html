@@ -5,7 +5,7 @@
     <div class="list text-right">
         <label class="item item-input name-select {{newActivityData.nameId == 'FREE_TEXT' ? 'no-border' : ''}}">
             <select ng-model="newActivityData.nameId" name="nameId">
-                <option selected disabled value="">בחר שם פעילות</option>
+                <option selected disabled value="">בחר כותרת לפעילות</option>
                 <option ng-repeat="item in nameOptions track by item.id" value="{{item.id}}">
                     {{item.display}}
                 </option>
@@ -40,6 +40,15 @@
             </span>
             <input ng-model="newActivityData.location" type="text" placeholder="">
         </label>
+
+        <!-- <div class="item item-input item-stacked-label">
+            <button type="file" ngf-select="selectImg($file)" name="file" accept="image/*">{{imageBtnText}}</button>
+            <button ng-click="clearImage()" ng-if="newActivityData.image">הסר תמונה</button>
+            <div class="preview" ng-if="newActivityData.image">
+                <br>
+                <img ngf-src="newActivityData.image" ng-style="resizeObj">
+            </div>
+        </div> -->
 
         <label class="item item-input item-stacked-label">
             <span class="input-label">

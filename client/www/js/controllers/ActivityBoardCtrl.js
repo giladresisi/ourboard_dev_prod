@@ -74,6 +74,11 @@ angular.module('ourBoard').controller('ActivityBoardCtrl',
             });
         };
 
+        $scope.doRefresh = function() {
+            $rootScope.$broadcast('REFRESH_ACTIVITY_BOARD');
+            $rootScope.$broadcast('scroll.refreshComplete');
+        };
+
         $scope.$on('$ionicView.beforeEnter', function (event, viewData) {
             $ionicTabsDelegate.showBar(true); // Because ActivityDetails.beforeLeave doesn't work
         });
