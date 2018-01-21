@@ -50,10 +50,14 @@ angular.module('ourBoard').service('actionsAfterSignupSrvc',
         };
 
         that.getRedirectionState = function () {
-            return lastActionRedirectionState;
+            var tmpRedirectionState = angular.copy(lastActionRedirectionState);
+            lastActionRedirectionState = null;
+            return tmpRedirectionState ;
         };
         that.getRedirectionStateParams = function () {
-            return lastActionRedirectionStateParams;
+            var tmpStateParams = angular.copy(lastActionRedirectionStateParams);
+            lastActionRedirectionStateParams = null;
+            return tmpStateParams;
         }
     }
 );

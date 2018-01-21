@@ -1,75 +1,83 @@
-<div class="create-new-activity">
-    <div class="bar bar-header bar-calm">
-        <h1 class="title">יצירת פעילות חדשה</h1>
-    </div>
-    <div class="list text-right">
-        <label class="item item-input name-select {{newActivityData.nameId == 'FREE_TEXT' ? 'no-border' : ''}}">
-            <select ng-model="newActivityData.nameId" name="nameId">
-                <option selected disabled value="">בחר כותרת לפעילות</option>
-                <option ng-repeat="item in nameOptions track by item.id" value="{{item.id}}">
-                    {{item.display}}
-                </option>
-            </select>
-            <span class="mandatory">*</span>
-        </label>
+<ion-modal-view align="center" class="general-modal-view" dir="rtl">
+    <ion-content class="content general-modal-content stable-bg has-footer">
 
-        <label class="item item-input free-text" ng-show="newActivityData.nameId == 'FREE_TEXT'">
-            <input
-                ng-model="newActivityData.freeName"
-                type="text"
-                placeholder="הקלד שם לפעילות"
-                maxlength="20"
-                minlength="3">
-        </label>
-
-        <label class="item item-input ion-datetime-picker item-stacked-label" ion-datetime-picker
-               ng-model="newActivityData.datetimeValue">
-            <span class="input-label">
-                <span>תאריך ושעה</span>
-                <span class="mandatory">*</span>
-            </span>
-            <div class="date-time-text">
-                {{newActivityData.datetimeValue | date: "yyyy-MM-dd H:mm:ss"}}
+        <div class="create-new-activity-edit-profile">
+            <div class="bar bar-header bar-calm">
+                <h1 class="title" ng-if="!edit">יצירת פעילות חדשה</h1>
+                <h1 class="title" ng-if="edit">{{oldTitle}}</h1>
             </div>
-        </label>
+            <div class="list text-right">
+                <label class="item item-input name-select {{newActivityData.nameId == 'FREE_TEXT' ? 'no-border' : ''}}">
+                    <select ng-model="newActivityData.nameId" name="nameId">
+                        <option ng-repeat="item in nameOptions track by item.id" ng-disabled="!item.id" ng-selected="{{newActivityData.nameId==item.id}}" value="{{item.id}}">
+                            {{item.display}}
+                        </option>
+                    </select>
+                    <span class="mandatory">*</span>
+                </label>
 
-        <label class="item item-input item-stacked-label">
-            <span class="input-label">
-                <span>מיקום</span>
-                <span class="mandatory">*</span>
-            </span>
-            <input ng-model="newActivityData.location" type="text" placeholder="">
-        </label>
+                <label class="item item-input free-text" ng-show="newActivityData.nameId == 'FREE_TEXT'">
+                    <input
+                        ng-model="newActivityData.freeName"
+                        type="text"
+                        placeholder="הקלד שם לפעילות"
+                        maxlength="20"
+                        minlength="3">
+                </label>
 
-        <!-- <div class="item item-input item-stacked-label">
-            <button type="file" ngf-select="selectImg($file)" name="file" accept="image/*">{{imageBtnText}}</button>
-            <button ng-click="clearImage()" ng-if="newActivityData.image">הסר תמונה</button>
-            <div class="preview" ng-if="newActivityData.image">
-                <br>
-                <img ngf-src="newActivityData.image" ng-style="resizeObj">
+                <label class="item item-input ion-datetime-picker item-stacked-label" ion-datetime-picker
+                       ng-model="newActivityData.datetimeValue">
+		            <span class="input-label">
+		                <span>תאריך ושעה</span>
+		                <span class="mandatory">*</span>
+		            </span>
+                    <div class="date-time-text">
+                        {{newActivityData.datetimeValue | date: "yyyy-MM-dd H:mm:ss"}}
+                    </div>
+                </label>
+
+                <label class="item item-input item-stacked-label">
+		            <span class="input-label">
+		                <span>מיקום</span>
+		                <span class="mandatory">*</span>
+		            </span>
+                    <input ng-model="newActivityData.location" type="text" placeholder="">
+                </label>
+
+                <label class="item item-input item-stacked-label">
+		            <span class="input-label">
+		                <span>פרטים נוספים</span>
+		            </span>
+                    <textarea
+                        class="additional-info"
+                        rows="4"
+                        ng-model="newActivityData.additionalInfo"
+                        placeholder="הוסף פרטים נוספים על האירוע">
+            		</textarea>
+                </label>
+
+                <div class="item item-input item-stacked-label">
+                    <button type="file" ngf-select="selectImg($file)" ngf-accept="'image/*'" ngf-fix-orientation="true">{{imageBtnText}}</button>
+                    <button ng-click="clearImage()" ng-if="newActivityData.image">הסר תמונה</button>
+                    <button ng-click="restoreOrigImage()" ng-if="edit && imgChange && newActivityData.imageUrl">תמונה מקורית</button>
+                    <div class="preview" ng-if="newActivityData.image">
+                        <br>
+                        <img ngf-src="newActivityData.image" style="width: 100%; height: auto">
+                    </div>
+                </div>
+
+                <div class="errors">
+                    <div ng-repeat="error in errors track by $index">
+                        {{error}}
+                    </div>
+                </div>
             </div>
-        </div> -->
-
-        <label class="item item-input item-stacked-label">
-            <span class="input-label">
-                <span>פרטים נוספים</span>
-            </span>
-            <textarea
-                class="additional-info"
-                rows="4"
-                ng-model="newActivityData.additionalInfo"
-                placeholder="הוסף פרטים נוספים על האירוע">
-            </textarea>
-        </label>
-
-    </div>
-    <div class="errors">
-        <div ng-repeat="error in errors track by $index">
-            {{error}}
         </div>
-    </div>
-    <div class="bar bar-footer bar-stable">
-        <button class="button button-right button-calm" ng-click="edit ? updateActivity() : createActivity()">{{edit ? 'עדכן פעילות' : 'צור פעילות' }}</button>
+    </ion-content>
+    <div class="bar bar-modal-footer bar-stable">
+        <button class="button button-right button-calm" ng-click="edit ? updateActivity() : createActivity()">{{edit ?
+            'עדכן פעילות' : 'צור פעילות' }}
+        </button>
         <button class="button button-left button-light" ng-click="cancel()">ביטול</button>
     </div>
-</div>
+</ion-modal-view>

@@ -1,17 +1,7 @@
-@import "../lib/ionic/scss/variables";
+@import "variables";
 
 .activity-details {
-    .btn{
-        z-index: 99999;
-        margin-right: 6px;
-        h2{
-            color: $light;
-        }
-        &.back-btn{
-            right: auto !important;
-            left: 15px;
-        }
-    }
+
     .row{
         border-bottom: 1px solid black;
         margin-top: 0 !important;

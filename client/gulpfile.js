@@ -9,6 +9,7 @@ var paths = {
 
 gulp.task('default', ['sass']);
 
+
 gulp.task('sass', function(done) {
   gulp.src('./scss/ionic.app.scss')
     .pipe(sass())
@@ -25,3 +26,6 @@ gulp.task('sass', function(done) {
 gulp.task('watch', ['sass'], function() {
   gulp.watch(paths.sass, ['sass']);
 });
+
+
+gulp.task('serve:before', ['sass', 'watch']);

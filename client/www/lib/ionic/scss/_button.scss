@@ -72,7 +72,7 @@
   }
 
   &.button-light {
-    @include button-style($button-light-bg, $button-light-border, $button-light-active-bg, $button-default-active-border, $button-light-text);
+    @include button-style($button-light-bg, $button-default-border, $button-light-active-bg, $button-default-active-border, $button-light-text);
     @include button-clear($button-light-border);
     @include button-outline($button-light-border);
   }

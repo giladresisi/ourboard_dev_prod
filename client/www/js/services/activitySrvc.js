@@ -1,11 +1,14 @@
 angular.module('ourBoard').service('activitySrvc',
-    function (dataSrvc) {
+    function (dataSrvc, ENV) {
         var that = this;
 
         that.processActivityData = function (userData, activity) {
             var dateMoment = moment(activity.datetimeMS);
             activity.date = dateMoment.format('DD/MM');
             activity.hour = dateMoment.format('HH:mm');
+            if (activity.imgName) {
+                activity.imageUrl = ENV.S3_URL + '/' + activity._id.toString() + '/' + activity.imgName; // Same as in create API
+            }
             if (userData) {
                 //Check if Current user is attending to the event;
                 var tmpUser = _.find(activity.users, function (participantId) {

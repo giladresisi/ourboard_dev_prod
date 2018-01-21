@@ -1,6 +1,12 @@
 #!/usr/bin/env node
 
 /**
+ * Read config file
+ */
+
+var config = require('./config');
+
+/**
  * Module dependencies.
  */
 
@@ -19,16 +25,23 @@ var moment = require('moment');
 var request = require('request');
 var fs = require('fs');
 var AWS = require('aws-sdk');
-var s3 = new AWS.S3();
+var awsConfig = new AWS.Config({
+  accessKeyId: config.S3_ACCESS_KEY_ID,
+  secretAccessKey: config.S3_SECRET_ACCESS_KEY,
+  region: config.S3_REGION
+});
+var s3 = new AWS.S3(awsConfig);
 var multer = require('multer');
-var upload = multer({dest: 'uploads/'});
-var single = upload.single('file');
-
-/**
- * Read config file
- */
-
-var config = require('./config');
+var imgDestPath = 'uploads/';
+var storage = multer.diskStorage({
+  destination: imgDestPath,
+  filename: function (req, file, cb) {
+    req.datetimeUploadedMS = (new Date()).getTime();
+    cb(null, req.datetimeUploadedMS.toString() + '_' + file.fieldname);
+  }
+});
+var upload = multer({ storage: storage });
+var any = upload.any();
 
 /**
  * Prepare MongoPool & ObjectId
@@ -61,8 +74,8 @@ function hashPassword(password, done) {
 
 var app = express();
 
-// app.set('host', process.env.NODE_IP || '10.0.0.13');
-// app.set('host', process.env.NODE_IP || '192.168.1.4');
+// app.set('host', process.env.NODE_IP || '10.0.0.9');
+// app.set('host', process.env.NODE_IP || '192.168.1.3');
 app.set('host', process.env.NODE_IP || 'localhost');
 app.use(cors());
 app.use(logger('dev'));
@@ -1593,10 +1606,10 @@ app.get('/guest/activity/single/:id', function (req, res) {
 
 /*
  |--------------------------------------------------------------------------
- | POST /activity/create - Create Activity (Group / User) & Add First User
+ | POST /activity/create - Create activity & add first user
  |--------------------------------------------------------------------------
  */
-app.post('/activity/create', ensureAuthenticated, single, function (req, res) {
+app.post('/activity/create', ensureAuthenticated, function (req, res) {
     MongoPool.getInstance(function (db) {
         db.collection('users', function (err, users) {
             if (err != null) {
@@ -1618,16 +1631,13 @@ app.post('/activity/create', ensureAuthenticated, single, function (req, res) {
                         return res.status(500).send({message: err.message});
                     }
                     var activity = {
-                        type: req.body.title, // TODO type->title in DB
+                        title: req.body.title,
                         location: req.body.location,
                         extraDetails: req.body.extraDetails,
-                        datetimeMS: req.body.datetimeMS,
+                        datetimeMS: parseInt(req.body.datetimeMS),
                         organizer: user._id.toString(),
                         users: [user._id.toString()]
                     };
-                    if (req.file) {
-                        activity.imgName = req.file.filename;
-                    }
                     activities.insertOne(activity, function (err) {
                         if (err) {
                             console.log('post(/activity/create) error: activities.insertOne(newActivity)');
@@ -1645,25 +1655,7 @@ app.post('/activity/create', ensureAuthenticated, single, function (req, res) {
                                 console.log('post(/activity/create) error: users.updateOne(user.activities)');
                                 return res.status(500).send({message: err.message});
                             }
-                            if (req.file) {
-                                var bodyStream = fs.createReadStream(req.file.path);
-                                var params = {
-                                    Body: bodyStream,
-                                    Bucket: config.S3_BUCKET,
-                                    Key: activity._id + '/' + req.file.filename
-                                };
-                                s3.putObject(params, function (err, data) {
-                                    if (err) {
-                                        console.log(err, err.stack); // an error occurred
-                                        res.status(500).send({message: err.message});
-                                    } else {
-                                        console.log(data); // successful response
-                                        res.send(activity);
-                                    }
-                                });
-                            } else {
-                                res.send(activity);
-                            }
+                            res.send(activity);
                         });
                     });
                 });
@@ -1672,20 +1664,113 @@ app.post('/activity/create', ensureAuthenticated, single, function (req, res) {
     });
 });
 
+function removeImage(imgName) {
+    var imgPath = imgDestPath + imgName;
+    fs.unlink(imgPath, function(err) {
+    if(err) {
+        if (err.code == 'ENOENT') {
+            // file doens't exist
+            console.log("File " + imgPath + " doesn't exist, won't remove it.");
+        } else {
+            console.log("Error occurred while trying to remove file " + imgPath);
+        }
+    }
+});
+};
 
 /*
  |--------------------------------------------------------------------------
- | POST /activity/update - Update Activity (Group / User)
+ | POST /activity/create/image - Create activity with image & add first user
  |--------------------------------------------------------------------------
  */
-app.post('/activity/update', ensureAuthenticated, single, function (req, res) {
+app.post('/activity/create/image', ensureAuthenticated, any, function (req, res) {
+    MongoPool.getInstance(function (db) {
+        db.collection('users', function (err, users) {
+            if (err != null) {
+                console.log('post(/activity/create) error: db.collection(users)');
+                removeImage(req.files[0].filename);
+                return res.status(500).send({message: err.message});
+            }
+            users.findOne({"_id": new ObjectId(req.user)}, function (err, user) {
+                if (err != null) {
+                    console.log('post(/activity/create) error: collection.findOne(userId)');
+                    removeImage(req.files[0].filename);
+                    return res.status(500).send({message: err.message});
+                }
+                if (!user) {
+                    console.log('post(/activity/create) error: No such user');
+                    removeImage(req.files[0].filename);
+                    return res.status(409).send({message: 'No such user'});
+                }
+                db.collection('activities', function (err, activities) {
+                    if (err != null) {
+                        console.log('post(/activity/create) error: db.collection(activities)');
+                        removeImage(req.files[0].filename);
+                        return res.status(500).send({message: err.message});
+                    }
+                    var activity = {
+                        title: req.body.title,
+                        location: req.body.location,
+                        extraDetails: req.body.extraDetails,
+                        datetimeMS: parseInt(req.body.datetimeMS),
+                        organizer: user._id.toString(),
+                        users: [user._id.toString()],
+                        imgName: req.files[0].filename.split(req.datetimeUploadedMS.toString() + '_')[1]
+                    };
+                    activities.insertOne(activity, function (err) {
+                        if (err) {
+                            console.log('post(/activity/create) error: activities.insertOne(newActivity)');
+                            removeImage(req.files[0].filename);
+                            return res.status(500).send({message: err.message});
+                        }
+                        activity.nParticipants = 1;
+                        delete activity.users;
+                        user.activities.push(activity._id.toString());
+                        users.updateOne({_id: new ObjectId(user._id)}, {
+                            $set: {
+                                activities: user.activities
+                            }
+                        }, function (err) {
+                            if (err) {
+                                console.log('post(/activity/create) error: users.updateOne(user.activities)');
+                                removeImage(req.files[0].filename);
+                                return res.status(500).send({message: err.message});
+                            }
+                            var bodyStream = fs.createReadStream(req.files[0].path);
+                            var params = {
+                                Body: bodyStream,
+                                Bucket: config.S3_BUCKET,
+                                Key: activity._id.toString() + '/' + activity.imgName
+                            };
+                            s3.putObject(params, function (err) {
+                                removeImage(req.files[0].filename);
+                                if (err) {
+                                    console.log(err, err.stack); // an error occurred
+                                    return res.status(500).send({message: err.message});
+                                }
+                                res.send(activity);
+                            });
+                        });
+                    });
+                });
+            });
+        });
+    });
+});
+
+/*
+ |--------------------------------------------------------------------------
+ | POST /activity/update - Update activity without image upload (no change / removed)
+ |--------------------------------------------------------------------------
+ */
+app.post('/activity/update', ensureAuthenticated, function (req, res) {
     MongoPool.getInstance(function (db) {
         db.collection('users', function (err, users) {
             if (err) {
                 console.log('post(/activity/update) error: db.collection(users)');
                 return res.status(500).send({message: err.message});
             }
-            users.findOne({"_id": new ObjectId(req.user)}, function (err, user) {
+            users.findOne({_id: new ObjectId(req.user)}, function (err, user) {
                 if (err) {
                     console.log('post(/activity/update) error: collection.findOne(userId)');
                     return res.status(500).send({message: err.message});
@@ -1695,7 +1780,11 @@ app.post('/activity/update', ensureAuthenticated, single, function (req, res) {
                     return res.status(409).send({message: 'No such user'});
                 }
                 db.collection('activities', function (err, activities) {
-                    activities.findOne({"_id": new ObjectId(req.body.activityId)}, function (err, activity) {
+                    if (err) {
+                        console.log('post(/activity/update) error: db.collection(activities)');
+                        return res.status(500).send({message: err.message});
+                    }
+                    activities.findOne({_id: new ObjectId(req.body.activityId)}, function (err, activity) {
                         if (err) {
                             console.log('post(/activity/update) error: db.collection(activity)');
                             return res.status(500).send({message: err.message});
@@ -1704,68 +1793,37 @@ app.post('/activity/update', ensureAuthenticated, single, function (req, res) {
                             console.log('post(/activity/update) error: db.collection(activity)');
                             return res.status(500).send({message: 'Activity Does Not Belong to User'});
                         }
-                        if (req.body.imgChange) { // Added / removed / changed / removed and re-added
-                            if (req.file) { // Handle add / update / remove and re-add image
-                                activities.updateOne({"_id": new ObjectId(activity._id.toString())}, {
-                                    $set: {
-                                        type: req.body.title,
-                                        location: req.body.location,
-                                        extraDetails: req.body.extraDetails,
-                                        datetimeMS: req.body.datetimeMS,
-                                        imgName: req.file.filename // Update image name even if remained the same
-                                    }
-                                }, function(err){
+                        if (req.body.imgChange) { // Removed
+                            var imgName = activity.imgName;
+                            activities.updateOne({_id: new ObjectId(activity._id.toString())}, {
+                                $set: {
+                                    type: req.body.title,
+                                    location: req.body.location,
+                                    extraDetails: req.body.extraDetails,
+                                    datetimeMS: req.body.datetimeMS
+                                }, 
+                                $unset: {
+                                    imgName: "" // Remove imgName field
+                                }
+                            }, function(err){
+                                if (err) {
+                                    console.log('post(/activity/update) error: activities.updateOne(newActivity) - image change');
+                                    return res.status(500).send({message: err.message});
+                                }
+                                var params = {
+                                    Bucket: config.S3_BUCKET, 
+                                    Key: activity._id + '/' + imgName
+                                };
+                                s3.deleteObject(params, function(err) {
                                     if (err) {
-                                        console.log('post(/activity/update) error: activities.updateOne(newActivity) - image change');
-                                        return res.status(500).send({message: err.message});
+                                        console.log(err, err.stack); // an error occurred
+                                        res.status(500).send({message: err.message});
                                     }
-                                    var bodyStream = fs.createReadStream(req.file.path);
-                                    var params = {
-                                        Body: bodyStream,
-                                        Bucket: config.S3_BUCKET,
-                                        Key: activity._id + '/' + req.file.filename
-                                    };
-                                    s3.putObject(params, function (err, data) { // Same S3 SDK call for both adding / updating an image (no error if existed)
-                                        if (err) {
-                                            console.log(err, err.stack); // an error occurred
-                                            return res.status(500).send({message: err.message});
-                                        }
-                                        console.log(data); // successful response
-                                        return res.send(activity);
-                                    });
-                                });
-                            } else { // Handle remove image
-                                activities.updateOne({"_id": new ObjectId(activity._id.toString())}, {
-                                    $set: {
-                                        type: req.body.title,
-                                        location: req.body.location,
-                                        extraDetails: req.body.extraDetails,
-                                        datetimeMS: req.body.datetimeMS
-                                    }, 
-                                    $unset: {
-                                        imgName: "" // Remove imgName field
-                                    }
-                                }, function(err){
-                                    if (err) {
-                                        console.log('post(/activity/update) error: activities.updateOne(newActivity) - image change');
-                                        return res.status(500).send({message: err.message});
-                                    }
-                                    var params = {
-                                        Bucket: config.S3_BUCKET, 
-                                        Key: activity._id + '/' + req.file.filename
-                                    };
-                                    s3.deleteObject(params, function(err, data) {
-                                        if (err) {
-                                            console.log(err, err.stack); // an error occurred
-                                            res.status(500).send({message: err.message});
-                                        }
-                                        console.log(data); // successful response
-                                        return res.send(activity);
-                                     });
-                                });
-                            }
+                                    return res.send(activity);
+                                 });
+                            });
                         } else { // Image remained the same (not added / removed / changed / removed and re-added), no S3 calls required
-                            activities.updateOne({"_id": new ObjectId(activity._id.toString())}, {
+                            activities.updateOne({_id: new ObjectId(activity._id.toString())}, {
                                 $set: {
                                     type: req.body.title,
                                     location: req.body.location,
@@ -1780,6 +1838,100 @@ app.post('/activity/update', ensureAuthenticated, single, function (req, res) {
                                 res.send(activity);
                             });
                         }
+                    });
+                });
+            });
+        });
+    });
+});
+
+
+/*
+ |--------------------------------------------------------------------------
+ | POST /activity/update/image - Update activity with image upload (added / changed / removed and re-added)
+ |--------------------------------------------------------------------------
+ */
+app.post('/activity/update/image', ensureAuthenticated, any, function (req, res) {
+    MongoPool.getInstance(function (db) {
+        db.collection('users', function (err, users) {
+            if (err) {
+                console.log('post(/activity/update) error: db.collection(users)');
+                removeImage(req.files[0].filename);
+                return res.status(500).send({message: err.message});
+            }
+            users.findOne({_id: new ObjectId(req.user)}, function (err, user) {
+                if (err) {
+                    console.log('post(/activity/update) error: collection.findOne(userId)');
+                    removeImage(req.files[0].filename);
+                    return res.status(500).send({message: err.message});
+                }
+                if (!user) {
+                    console.log('post(/activity/update) error: No such user');
+                    removeImage(req.files[0].filename);
+                    return res.status(409).send({message: 'No such user'});
+                }
+                db.collection('activities', function (err, activities) {
+                    if (err) {
+                        console.log('post(/activity/update) error: db.collection(activities)');
+                        removeImage(req.files[0].filename);
+                        return res.status(500).send({message: err.message});
+                    }
+                    activities.findOne({_id: new ObjectId(req.body.activityId)}, function (err, activity) {
+                        if (err) {
+                            console.log('post(/activity/update) error: db.collection(activity)');
+                            removeImage(req.files[0].filename);
+                            return res.status(500).send({message: err.message});
+                        }
+                        if(activity && activity.organizer !== user._id.toString()){
+                            console.log('post(/activity/update) error: db.collection(activity)');
+                            removeImage(req.files[0].filename);
+                            return res.status(500).send({message: 'Activity Does Not Belong to User'});
+                        }
+                        var oldImgName = activity.imgName;
+                        var newImgName = req.files[0].filename.split(req.datetimeUploadedMS.toString() + '_')[1];
+                        activities.updateOne({_id: new ObjectId(activity._id.toString())}, {
+                            $set: {
+                                title: req.body.title,
+                                location: req.body.location,
+                                extraDetails: req.body.extraDetails,
+                                datetimeMS: parseInt(req.body.datetimeMS),
+                                imgName: newImgName // Update image name even if removed & re-added the same image (can't tell if different)
+                            }
+                        }, function(err){
+                            if (err) {
+                                console.log('post(/activity/update) error: activities.updateOne(newActivity) - image change');
+                                removeImage(req.files[0].filename);
+                                return res.status(500).send({message: err.message});
+                            }
+                            var bodyStream = fs.createReadStream(req.files[0].path);
+                            var params = {
+                                Body: bodyStream,
+                                Bucket: config.S3_BUCKET,
+                                Key: activity._id + '/' + newImgName
+                            };
+                            s3.putObject(params, function (err) { // Same S3 SDK call for both adding / updating an image (no error if existed)
+                                removeImage(req.files[0].filename);
+                                if (err) {
+                                    console.log(err, err.stack); // an error occurred
+                                    return res.status(500).send({message: err.message});
+                                }
+                                if (oldImgName) { // if exists, delete old image from S3
+                                    params = {
+                                        Bucket: config.S3_BUCKET, 
+                                        Key: activity._id + '/' + oldImgName
+                                    };
+                                    s3.deleteObject(params, function(err) {
+                                        if (err) {
+                                            console.log(err, err.stack); // an error occurred
+                                            res.status(500).send({message: err.message});
+                                        }
+                                        return res.send(activity);
+                                     });
+                                } else {
+                                    return res.send(activity);
+                                }
+                            });
+                        });
                     });
                 });
             });

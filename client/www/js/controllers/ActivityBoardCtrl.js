@@ -1,21 +1,16 @@
 angular.module('ourBoard').controller('ActivityBoardCtrl',
-    function ($scope, $ionicLoading, apiMap, dataSrvc, authSrvc, $rootScope, modalSrvc, $stateParams, $ionicTabsDelegate, activitySrvc) {
+    function ($scope, apiMap, dataSrvc, authSrvc, $rootScope, modalSrvc, $stateParams, $ionicTabsDelegate, activitySrvc) {
 
         authSrvc.getUser().then(fetchData);
-        console.log($stateParams);
         $scope.watchers = [];
 
         function fetchData(userData) {
-            $ionicLoading.show({
-                template: 'טוען פעילויות'
-            });
             dataSrvc.api({
                 type: userData ? 'getActivities' : 'getActivitiesAsGuest',
             }).then(function (res) {
-                $ionicLoading.hide();
                 $scope.activities = res.data;
                 if (userData && $stateParams.joinActivity && $stateParams.activityId) {
-                    var activityIndex = $scope.activities.findIndex(function(activity) {
+                    var activityIndex = $scope.activities && $scope.activities.findIndex(function(activity) {
                         return (activity._id.toString() == $stateParams.activityId);
                     });
                     if (activityIndex != -1) {

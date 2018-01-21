@@ -1,0 +1,33 @@
+@import "variables";
+
+.btn{
+    z-index: 999999;
+    margin-right: 6px;
+    h2{
+        color: $light;
+    }
+    &.back-btn{
+        right: 10px;
+    }
+    &.btn-left{
+        right: auto !important;
+        left: 10px !important;
+        position: absolute;
+    }
+}
+
+.bar-modal-footer{
+    bottom:0;
+    border: none;
+    background-color: $stable;
+    .button-right{
+        width: 48%;
+        right: 0;
+        left: auto !important;
+    }
+    .button-left{
+        width: 48%;
+        left: 0;
+        right: auto !important;
+    }
+}

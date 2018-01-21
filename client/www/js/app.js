@@ -15,9 +15,10 @@ angular.module('ourBoard', [
 ])
     .constant('ENV', {
         DEV_URL: '',
+        S3_URL: 'http://ourboard-dev.s3-website-us-west-2.amazonaws.com',
         API_URL:'http://ourboarddev-env.us-west-2.elasticbeanstalk.com'
-        // API_URL: 'http://10.0.0.13:4000'
-        // API_URL: 'http://192.168.1.4:4000'
+        // API_URL: 'http://10.0.0.9:4000'
+        // API_URL: 'http://192.168.1.3:4000'
     })
 
 

@@ -1,5 +1,5 @@
 angular.module('ourBoard').service('dataSrvc',
-    function ($http, apiMap, ENV, $ionicLoading, $q, $ionicPopup) {
+    function ($http, Upload, apiMap, ENV, $ionicLoading, $q, $ionicPopup) {
         this.api = function (cfg) {
             if (!apiMap[cfg.type].disableLoading) {
                 $ionicLoading.show();
@@ -7,7 +7,18 @@ angular.module('ourBoard').service('dataSrvc',
             var url = getUrl(cfg.type, cfg.urlParamsObj);
             var requestPromise;
 
-            if (apiMap[cfg.type].method === 'POST') {
+            if (apiMap[cfg.type].uploadImage) {
+                requestPromise = Upload.http({
+                  url: url,
+                  method: apiMap[cfg.type].method,
+                  withCredentials: false,
+                  transformRequest: angular.identity,
+                  headers: {
+                    'Content-Type': undefined
+                  },
+                  data: cfg.fd
+                });
+            } else if (apiMap[cfg.type].method === 'POST') {
                 requestPromise = $http.post(url, cfg.args);
             }
             else if (apiMap[cfg.type].method === 'PUT') {

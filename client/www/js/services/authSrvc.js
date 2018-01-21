@@ -1,5 +1,5 @@
 angular.module('ourBoard').service('authSrvc',
-    function (localStorageService, $q, dataSrvc) {
+    function (localStorageService, $q, dataSrvc, $auth) {
         var that = this;
         that.userData = undefined;
         this.emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
@@ -16,7 +16,7 @@ angular.module('ourBoard').service('authSrvc',
         };
 
         this.logout = function () {
-            token = '';
+            token = undefined;
             localStorageService.remove('OurBoard_token');
             that.userData = undefined;
         };
@@ -30,6 +30,9 @@ angular.module('ourBoard').service('authSrvc',
          */
 
         this.getUser = function (forceFromServer) {
+            if (!$auth.isAuthenticated()) {
+                that.logout();
+            }
             if ((!that.userData && that.hasToken()) || forceFromServer) {
                 return dataSrvc.api({
                     type: 'getUser'

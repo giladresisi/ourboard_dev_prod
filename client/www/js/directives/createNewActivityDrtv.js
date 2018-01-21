@@ -6,11 +6,6 @@ angular.module('ourBoard').directive('createNewActivityDrtv',
             link: function ($scope, element, attrs) {
                 $scope.errors = [];
 
-                $scope.resizeObj = {
-                    'width': '100%',
-                    'height': 'auto'
-                }
-
                 initData();
 
                 function initData() {
@@ -19,19 +14,24 @@ angular.module('ourBoard').directive('createNewActivityDrtv',
                         nameId: null,
                         freeName: '',
                         location: '',
-                        additionalInfo: ''
+                        additionalInfo: '',
+                        image: undefined
                     };
                     $scope.nameOptions = [
                         {
-                            id: 1,
+                            id: null,
+                            display : 'בחר כותרת לפעילות'
+                        },
+                        {
+                            id: '1',
                             display : 'רכיבת סוסים'
                         },
                         {
-                            id: 2,
+                            id: '2',
                             display : 'פגישה בפארק'
                         },
                         {
-                            id: 3,
+                            id: '3',
                             display : 'הליכת ערב'
                         },
                         {
@@ -66,20 +66,41 @@ angular.module('ourBoard').directive('createNewActivityDrtv',
                     }
 
                     if ($scope.errors.length === 0) {
-                        dataSrvc.api({
-                            type: 'createNewActivity',
-                            args: {
-                                title: $scope.newActivityData.nameId === 'FREE_TEXT' ? $scope.newActivityData.freeName : _.findWhere($scope.nameOptions, {id: parseInt($scope.newActivityData.nameId)}).display,
+                        var title = $scope.newActivityData.nameId === 'FREE_TEXT' ? $scope.newActivityData.freeName : _.findWhere($scope.nameOptions, {id: $scope.newActivityData.nameId}).display;
+                        var args = undefined, fd = undefined;
+                        if ($scope.newActivityData.image) {
+                            fd = new FormData();
+                            fd.append($scope.newActivityData.image.name, $scope.newActivityData.image);
+                            fd.append('title', title);
+                            fd.append('location', $scope.newActivityData.location);
+                            fd.append('extraDetails', $scope.newActivityData.additionalInfo);
+                            fd.append('datetimeMS', moment($scope.newActivityData.datetimeValue).valueOf());
+                            dataSrvc.api({
+                                type: 'createNewActivityImage',
+                                args: args,
+                                fd: fd
+                            }).then(function (res) {
+                                initData();
+                                $rootScope.activeModal.hide();
+                                $rootScope.$broadcast('REFRESH_ACTIVITY_BOARD');
+                            });
+                        } else {
+                            args = {
+                                title: title,
                                 location: $scope.newActivityData.location,
-                                hasImage: !!$scope.newActivityData.image,
                                 extraDetails: $scope.newActivityData.additionalInfo,
                                 datetimeMS: moment($scope.newActivityData.datetimeValue).valueOf()
-                            }
-                        }).then(function (res) {
-                            initData();
-                            $rootScope.activeModal.hide();
-                            $rootScope.$broadcast('REFRESH_ACTIVITY_BOARD');
-                        });
+                            };
+                            dataSrvc.api({
+                                type: 'createNewActivity',
+                                args: args,
+                                fd: fd
+                            }).then(function (res) {
+                                initData();
+                                $rootScope.activeModal.hide();
+                                $rootScope.$broadcast('REFRESH_ACTIVITY_BOARD');
+                            });
+                        }
                     }
                 };
 
@@ -91,15 +112,26 @@ angular.module('ourBoard').directive('createNewActivityDrtv',
 
                 $scope.clearImage = function() {
                     $scope.newActivityData.image = null;
-                    console.log('image cleared');
                     $scope.imageBtnText = 'הוסף תמונה';
                 };
 
                 $scope.selectImg = function(file) {
                     $scope.imageBtnText = 'החלף תמונה';
                     if (file) {
-                        $scope.newActivityData.image = file;
-                        console.log('selected image: ' + $scope.newActivityData.image.name);
+                        Upload.imageDimensions(file).then(function(dimensions) {
+                            var resizeObj = {}
+                            var ratio = dimensions.width / dimensions.height;
+                            if (dimensions.width > dimensions.height) {
+                                resizeObj.width = 500;
+                                resizeObj.height = 500 / ratio;
+                            } else {
+                                resizeObj.width = 500 * ratio;
+                                resizeObj.height = 500;
+                            }
+                            Upload.resize(file, resizeObj).then(function(resizedFile) {
+                                $scope.newActivityData.image = resizedFile;
+                            });
+                        });
                     }
                 };
             }

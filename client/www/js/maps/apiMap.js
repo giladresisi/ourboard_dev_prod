@@ -41,9 +41,19 @@ angular.module('ourBoard').value('apiMap', {
         urlTemplate: '/activity/create',
         method: 'POST'
     },
+    createNewActivityImage: {
+        urlTemplate: '/activity/create/image',
+        method: 'POST',
+        uploadImage: true
+    },
     updateActivity: {
         urlTemplate: '/activity/update',
         method: 'POST'
+    },
+    updateActivityImage: {
+        urlTemplate: '/activity/update/image',
+        method: 'POST',
+        uploadImage: true
     },
     facebookCordovaLogin: {
         urlTemplate: '/auth/facebook',

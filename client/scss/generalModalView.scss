@@ -1,4 +1,4 @@
-@import "../lib/ionic/scss/variables";
+@import "variables";
 
 .general-modal-view {
     .general-modal-content{
@@ -6,6 +6,7 @@
             height: 100%;
         };
         padding: 16px;
+        overflow: auto;
         .item{
             border-left: none;
             border-right: none;

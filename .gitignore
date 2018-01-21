@@ -9,7 +9,7 @@
 !.elasticbeanstalk/*.global.yml
 
 uploads/
-
-client/*node_modules*
+*node_modules*
 client/platforms/
 client/plugins/
+client/www/css/

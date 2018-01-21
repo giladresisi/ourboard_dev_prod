@@ -1,16 +1,5 @@
-@import "../lib/ionic/scss/variables";
+@import "variables";
 .profile-page {
-    .btn{
-        z-index: 99999;
-        margin-right: 6px;
-        h2{
-            color: $light;
-        }
-        &.back-btn{
-            right: auto !important;
-            left: 15px;
-        }
-    }
     .list{
         margin-top: 10%;
     }
@@ -53,10 +42,7 @@
     }
     .inline-btn{
         button{
-            margin-top: 10%;
-            &.contact-us-btn{
-                margin-top: 21%;
-            }
+            margin-top: 13px;
         }
     }
     .contact-us-btn{

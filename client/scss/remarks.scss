@@ -1,4 +1,4 @@
-@import "../lib/ionic/scss/variables";
+@import "variables";
 
 .remarks{
     .list{
@@ -17,20 +17,6 @@
                 background-color: transparent;
                 height: 210px;
             }
-        }
-    }
-    .bar-footer{
-        border: none;
-        background-color: $stable;
-        .button-right{
-            width: 48%;
-            right: 0;
-            left: auto !important;
-        }
-        .button-left{
-            width: 48%;
-            left: 0;
-            right: auto !important;
         }
     }
     .errors{
