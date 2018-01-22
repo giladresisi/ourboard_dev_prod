@@ -152,7 +152,6 @@ app.get('/api/me', ensureAuthenticated, function (req, res) {
                     console.log('get(/api/me) error: collection.findOne()');
                     return res.status(500).send({message: err.message});
                 }
-                console.log('get(/api/me) success: user = ' + JSON.stringify(user));
                 res.send(user);
             });
         });

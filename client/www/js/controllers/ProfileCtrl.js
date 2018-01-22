@@ -1,5 +1,5 @@
 angular.module('ourBoard').controller('ProfileCtrl',
-    function ($scope, authSrvc, modalSrvc, $state, dataSrvc, $auth, authSrvc, $timeout, actionsAfterSignupSrvc, $rootScope) {
+    function ($scope, authSrvc, modalSrvc, $state, dataSrvc, $auth, $timeout, actionsAfterSignupSrvc, $rootScope) {
         var beforeEnter = function (event, viewData) {
             authSrvc.getUser().then(function (userData) {
                 $scope.isLoggedIn = !!userData;
@@ -25,26 +25,26 @@ angular.module('ourBoard').controller('ProfileCtrl',
             }
             else {
                 $auth.authenticate('facebook').then(function (res) {
-                    if (res.data && res.data.token) {
-                        authSrvc.setToken(res.data.token);
-                        authSrvc.getUser().then(function () {
-                            actionsAfterLogin();
-                        })
-                    }
+                    actionsAfterLogin(res);
                 }, fbLoginError);
             }
         };
 
-        function actionsAfterLogin() {
-            actionsAfterSignupSrvc.performAllActions().then(function () {
-                var redirectionState = actionsAfterSignupSrvc.getRedirectionState();
-                if(redirectionState){
-                    $state.go(redirectionState, actionsAfterSignupSrvc.getRedirectionStateParams() );
-                }
-                else{
-                    $state.go('tab.activity-board');
-                }
-            });
+        function actionsAfterLogin(res) {
+            if (res.data && res.data.token) {
+                authSrvc.setToken(res.data.token);
+                authSrvc.getUser().then(function () {
+                    actionsAfterSignupSrvc.performAllActions().then(function () {
+                        var redirectionState = actionsAfterSignupSrvc.getRedirectionState();
+                        if(redirectionState){
+                            $state.go(redirectionState, actionsAfterSignupSrvc.getRedirectionStateParams() );
+                        }
+                        else{
+                            $state.go('tab.activity-board');
+                        }
+                    });
+                });
+            }
         }
 
         function fbLoginSuccess(res) {
@@ -59,10 +59,7 @@ angular.module('ourBoard').controller('ProfileCtrl',
                         }
                     }
                 }).then(function (res) {
-                    authSrvc.setToken(res.data.token);
-                    authSrvc.getUser().then(function () {
-                        actionsAfterLogin();
-                    })
+                    actionsAfterLogin(res);
                 });
             }
         }

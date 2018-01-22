@@ -14,6 +14,7 @@ angular.module('ourBoard', [
     'ngFileUpload'
 ])
     .constant('ENV', {
+        TOKEN_NAME: 'OurBoard_token',
         DEV_URL: '',
         S3_URL: 'http://ourboard-dev.s3-website-us-west-2.amazonaws.com',
         API_URL:'http://ourboarddev-env.us-west-2.elasticbeanstalk.com'

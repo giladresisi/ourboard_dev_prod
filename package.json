@@ -1,5 +1,5 @@
 {
-  "name": "test-server",
+  "name": "ourboardserver",
   "version": "1.0.0",
   "description": "",
   "main": "server.js",
