@@ -1722,31 +1722,43 @@ app.post('/activity/create/image', ensureAuthenticated, any, function (req, res)
                             removeImage(req.files[0].filename);
                             return res.status(500).send({message: err.message});
                         }
-                        activity.nParticipants = 1;
-                        delete activity.users;
-                        user.activities.push(activity._id.toString());
-                        users.updateOne({_id: new ObjectId(user._id)}, {
-                            $set: {
-                                activities: user.activities
-                            }
-                        }, function (err) {
+                        var bodyStream = fs.createReadStream(req.files[0].path);
+                        var params = {
+                            Body: bodyStream,
+                            Bucket: config.S3_BUCKET,
+                            Key: activity._id.toString() + '/' + activity.imgName
+                        };
+                        s3.putObject(params, function (err) {
+                            removeImage(req.files[0].filename);
                             if (err) {
-                                console.log('post(/activity/create) error: users.updateOne(user.activities)');
-                                removeImage(req.files[0].filename);
-                                return res.status(500).send({message: err.message});
-                            }
-                            var bodyStream = fs.createReadStream(req.files[0].path);
-                            var params = {
-                                Body: bodyStream,
-                                Bucket: config.S3_BUCKET,
-                                Key: activity._id.toString() + '/' + activity.imgName
-                            };
-                            s3.putObject(params, function (err) {
-                                removeImage(req.files[0].filename);
-                                if (err) {
+                                activities.deleteOne({_id: new ObjectId(activity._id.toString())}, function () {
                                     console.log(err, err.stack); // an error occurred
                                     return res.status(500).send({message: err.message});
+                                });
+                            }
+                            user.activities.push(activity._id.toString());
+                            users.updateOne({_id: new ObjectId(user._id)}, {
+                                $set: {
+                                    activities: user.activities
                                 }
+                            }, function (err) {
+                                if (err) {
+                                    var params = {
+                                        Bucket: config.S3_BUCKET, 
+                                        Key: activity._id.toString() + '/' + activity.imgName
+                                    };
+                                    s3.deleteObject(params, function(err) {
+                                        if (err) {
+                                            console.log(err, err.stack); // an error occurred
+                                            return res.status(500).send({message: err.message});
+                                        }
+                                        return res.send(activity);
+                                    });
+                                    console.log('post(/activity/create) error: users.updateOne(user.activities)');
+                                    return res.status(500).send({message: err.message});
+                                }
+                                activity.nParticipants = 1;
+                                delete activity.users;
                                 res.send(activity);
                             });
                         });
@@ -1816,10 +1828,10 @@ app.post('/activity/update', ensureAuthenticated, function (req, res) {
                                 s3.deleteObject(params, function(err) {
                                     if (err) {
                                         console.log(err, err.stack); // an error occurred
-                                        res.status(500).send({message: err.message});
+                                        return res.status(500).send({message: err.message});
                                     }
                                     return res.send(activity);
-                                 });
+                                });
                             });
                         } else { // Image remained the same (not added / removed / changed / removed and re-added), no S3 calls required
                             activities.updateOne({_id: new ObjectId(activity._id.toString())}, {
