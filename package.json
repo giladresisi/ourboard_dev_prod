@@ -21,7 +21,7 @@
     "fs": "0.0.1-security",
     "jwt-simple": "^0.5.1",
     "moment": "^2.17.1",
-    "mongodb": "^2.2.9",
+    "mongodb": "^3.0.2",
     "morgan": "^1.7.0",
     "multer": "^1.3.0",
     "path": "^0.12.7",
