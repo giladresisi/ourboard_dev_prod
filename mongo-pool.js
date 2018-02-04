@@ -1,25 +1,11 @@
 var MongoClient = require('mongodb').MongoClient;
-var url = require('./config.js').MONGO_URI;
+var config = require('./config.js');
+var url = config.MONGO_URI;
 
 var option = {
-    db:{
-        numberOfRetries : 5
-    },
-    server: {
-        auto_reconnect: true,
-        poolSize : 40,
-        socketOptions: {
-            connectTimeoutMS: 20000
-        }
-    },
-    replSet: {},
-    mongos: {}
+    poolSize : 40,
+    connectTimeoutMS: 20000
 };
-
-// var option = {
-//     poolSize : 40,
-//     connectTimeoutMS: 20000
-// };
 
 function MongoPool(){}
 
@@ -29,7 +15,7 @@ function initPool(cb){
     MongoClient.connect(url, option, function(err, db) {
         if (err) throw err;
 
-        p_db = db;
+        p_db = db.db(config.MONGO_DB_NAME);
         if(cb && typeof(cb) == 'function')
             cb(p_db);
     });

@@ -31,9 +31,6 @@ angular.module('ourBoard').service('authSrvc',
          */
 
         this.getUser = function (forceFromServer) {
-            // if (!$auth.isAuthenticated()) {
-            //     that.logout();
-            // }
             if ((!that.userData && that.hasToken()) || forceFromServer) {
                 return dataSrvc.api({
                     type: 'getUser'
