@@ -1,10 +1,10 @@
 var fs = require('fs');
 
-var exports = {};
+var config = {};
 
 if (process.env.PRODUCTION) {
     console.log('production');
-    exports = {
+    config = {
         // App Settings
         MONGO_DB_NAME: process.env.MONGO_DB_NAME,
         MONGO_URI: process.env.MONGO_URI,
@@ -35,7 +35,7 @@ if (process.env.PRODUCTION) {
     console.log('development');
     var devConfig = require('./devConfig');
 
-    exports = {
+    config = {
         // App Settings
         MONGO_DB_NAME: devConfig.MONGO_DB_NAME,
         MONGO_URI: devConfig.MONGO_URI,
@@ -64,4 +64,6 @@ if (process.env.PRODUCTION) {
     };
 }
 
-module.exports = exports;
+console.log('config: ' + JSON.stringify(config));
+
+module.exports = config;
