@@ -1,6 +1,7 @@
 
 var exports;
 
+console.log('ENV_NAME: ' + process.env.ENV_NAME);
 if (process.env.ENV_NAME == 'PRODUCTION') {
     exports = {
         // App Settings
