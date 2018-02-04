@@ -1,8 +1,6 @@
-
 var exports;
 
-console.log('ENV_NAME: ' + process.env.ENV_NAME);
-if (process.env.ENV_NAME == 'PRODUCTION') {
+if (process.env.PRODUCTION) {
     exports = {
         // App Settings
         MONGO_DB_NAME: process.env.MONGO_DB_NAME,
