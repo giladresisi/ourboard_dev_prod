@@ -1,7 +1,6 @@
 var MongoClient = require('mongodb').MongoClient;
 var config = require('./config.js');
 var url = config.MONGO_URI;
-console.log('MONGO_URI: ' + url);
 
 var option = {
     poolSize : 40,

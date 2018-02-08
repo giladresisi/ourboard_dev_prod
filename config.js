@@ -62,6 +62,4 @@ if (process.env.PRODUCTION) {
     };
 }
 
-console.log('config: ' + JSON.stringify(config));
-
 module.exports = config;
