@@ -2205,14 +2205,14 @@ function onListening() {
     console.log('Listening on ' + bind);
 }
 
-// Init the mongodb connection pool before creating the seerver and listening
-MongoPool.getInstance(function(){
-
 /**
  * Create HTTP server.
  */
 
-    var server = http.createServer(app);
+var server = http.createServer(app);
+
+// Init the mongodb connection pool before listening
+MongoPool.getInstance(function(){
 
 /**
  * Listen on provided port, on all network interfaces.
