@@ -2193,6 +2193,8 @@ function onError(error) {
     }
 }
 
+var server;
+
 /**
  * Event listener for HTTP server "listening" event.
  */
@@ -2205,14 +2207,14 @@ function onListening() {
     console.log('Listening on ' + bind);
 }
 
-/**
- * Create HTTP server.
- */
-
-var server = http.createServer(app);
-
-// Init the mongodb connection pool before listening
+// Init the mongodb connection pool before creating the server and listening
 MongoPool.getInstance(function(){
+
+    /**
+     * Create HTTP server.
+     */
+
+    server = http.createServer(app);
 
 /**
  * Listen on provided port, on all network interfaces.
