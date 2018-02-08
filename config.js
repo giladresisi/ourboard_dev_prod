@@ -1,5 +1,3 @@
-var fs = require('fs');
-
 var config = {};
 
 if (process.env.PRODUCTION) {
