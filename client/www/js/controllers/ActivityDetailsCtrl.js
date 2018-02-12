@@ -100,6 +100,10 @@ angular.module('ourBoard').controller('ActivityDetailsCtrl',
         };
 
         $rootScope.$on('ACTIVITY_EDITED', function (event) {
+            $stateParams.joinActivity = undefined;
+            $stateParams.activityId = undefined;
+            $stateParams.showOrganizerPhone = undefined;
+            $stateParams.showParticipants = undefined;
             fetchData($scope.userData);
         });
 
