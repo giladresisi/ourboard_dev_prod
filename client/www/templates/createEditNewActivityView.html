@@ -57,7 +57,7 @@
                 </label>
 
                 <div class="item item-input item-stacked-label">
-                    <button type="file" ngf-select="selectImg($file)" ngf-accept="'image/*'" ngf-fix-orientation="true">{{imageBtnText}}</button>
+                    <button type="file" ngf-select="selectImg($file)" ngf-accept="'image/*'" ngf-fix-orientation="true" ngf-resize="{width: 500}">{{imageBtnText}}</button>
                     <button ng-click="clearImage()" ng-if="newActivityData.image">הסר תמונה</button>
                     <button ng-click="restoreOrigImage()" ng-if="edit && imgChange && newActivityData.imageUrl">תמונה מקורית</button>
                     <div class="preview" ng-if="newActivityData.image">

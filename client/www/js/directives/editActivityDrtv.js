@@ -117,16 +117,13 @@ angular.module('ourBoard').directive('editActivityDrtv',
                 };
 
                 $scope.selectImg = function(file) {
-                    $scope.imageBtnText = 'החלף תמונה';
                     if (file) {
+                        $scope.imageBtnText = 'החלף תמונה';
                         $scope.imgChange = true;
                         Upload.imageDimensions(file).then(function(dimensions) {
                             var resizeObj = {}
                             var ratio = dimensions.width / dimensions.height;
-                            if (dimensions.width > dimensions.height) {
-                                resizeObj.width = 500;
-                                resizeObj.height = 500 / ratio;
-                            } else {
+                            if (dimensions.width < dimensions.height) {
                                 resizeObj.width = 500 * ratio;
                                 resizeObj.height = 500;
                             }
