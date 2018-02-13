@@ -8,7 +8,6 @@ angular.module('ourBoard').directive('editProfileDrtv',
                 authSrvc.getUser().then(function (userData) {
                     $scope.userData = userData;
                     $scope.profileData = angular.copy($scope.userData);
-                    delete $scope.profileData.password;
                 });
 
 

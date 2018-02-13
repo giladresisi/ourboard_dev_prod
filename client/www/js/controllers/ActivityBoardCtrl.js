@@ -1,6 +1,7 @@
 angular.module('ourBoard').controller('ActivityBoardCtrl',
     function ($scope, apiMap, dataSrvc, authSrvc, $rootScope, modalSrvc, $stateParams, $ionicTabsDelegate, activitySrvc) {
 
+        var params = $stateParams;
         authSrvc.getUser().then(fetchData);
         $scope.watchers = [];
 
@@ -9,9 +10,9 @@ angular.module('ourBoard').controller('ActivityBoardCtrl',
                 type: userData ? 'getActivities' : 'getActivitiesAsGuest',
             }).then(function (res) {
                 $scope.activities = res.data;
-                if (userData && $stateParams.joinActivity && $stateParams.activityId) {
+                if (userData && params.joinActivity && params.activityId) {
                     var activityIndex = $scope.activities && $scope.activities.findIndex(function(activity) {
-                        return (activity._id.toString() == $stateParams.activityId);
+                        return (activity._id.toString() == params.activityId);
                     });
                     if (activityIndex != -1) {
                         $scope.activities[activityIndex].joinUserAfterLogin = true; // Mark for activitySrvc (mark for activitySrvc, make 'join' server call after setting isAttending)
@@ -19,7 +20,7 @@ angular.module('ourBoard').controller('ActivityBoardCtrl',
                         // TODO error: request to join non-existing activity after login
                     }
                 }
-                if (userData && $stateParams.openCreate === true) {
+                if (userData && params.openCreate === true) {
                     $scope.openCreateNewActivityModal();
                 }
             });
@@ -52,9 +53,7 @@ angular.module('ourBoard').controller('ActivityBoardCtrl',
         }));
 
         $scope.watchers.push($rootScope.$on('REFRESH_ACTIVITY_BOARD', function () {
-            $stateParams.joinActivity = undefined;
-            $stateParams.activityId = undefined;
-            $stateParams.openCreate = undefined;
+            params = {};
             authSrvc.getUser().then(fetchData);
         }));
 

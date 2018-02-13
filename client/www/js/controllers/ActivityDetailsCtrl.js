@@ -1,6 +1,7 @@
 angular.module('ourBoard').controller('ActivityDetailsCtrl',
     function ($scope, dataSrvc, $stateParams, activitySrvc, $rootScope, $state, authSrvc, $ionicScrollDelegate, $ionicTabsDelegate, modalSrvc) {
 
+        var params = $stateParams;
         authSrvc.getUser().then(fetchData);
 
         function fetchData(userData) {
@@ -8,7 +9,7 @@ angular.module('ourBoard').controller('ActivityDetailsCtrl',
             dataSrvc.api({
                 type: $scope.userData ? 'getActivity' : 'getActivityAsGuest',
                 urlParamsObj: {
-                    activityId: $stateParams.activityId
+                    activityId: $stateParams.activityId // not erased on ACTIVITY_EDITED event
                 }
             }).then(function (res) {
                 $scope.activity = res.data;
@@ -17,7 +18,7 @@ angular.module('ourBoard').controller('ActivityDetailsCtrl',
                         return participant._id.toString();
                     });
                 }
-                if ($scope.userData && $stateParams.joinActivity && $stateParams.activityId) {
+                if ($scope.userData && params.joinActivity && $stateParams.activityId) {
                     if ($stateParams.activityId == $scope.activity._id.toString()) {
                         $scope.activity.joinUserAfterLogin = true; // Mark for activitySrvc (mark for activitySrvc, make 'join' server call after setting isAttending)
                     } else {
@@ -25,10 +26,10 @@ angular.module('ourBoard').controller('ActivityDetailsCtrl',
                     }
                 }
                 activitySrvc.processActivityData(userData, $scope.activity);
-                if ($stateParams.showOrganizerPhone) {
+                if (params.showOrganizerPhone) {
                     $scope.showOrganizerPhone = true;
                 }
-                if ($stateParams.showParticipants) {
+                if (params.showParticipants) {
                     $scope.showParticipants = true;
                 }
             });
@@ -100,10 +101,7 @@ angular.module('ourBoard').controller('ActivityDetailsCtrl',
         };
 
         $rootScope.$on('ACTIVITY_EDITED', function (event) {
-            $stateParams.joinActivity = undefined;
-            $stateParams.activityId = undefined;
-            $stateParams.showOrganizerPhone = undefined;
-            $stateParams.showParticipants = undefined;
+            params = {};
             fetchData($scope.userData);
         });
 
