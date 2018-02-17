@@ -23,6 +23,7 @@ angular.module('ourBoard').controller('ActivityBoardCtrl',
                 if (userData && params.openCreate === true) {
                     $scope.openCreateNewActivityModal();
                 }
+                params = {};
             });
         };
 

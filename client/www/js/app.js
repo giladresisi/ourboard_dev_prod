@@ -48,7 +48,6 @@ angular.module('ourBoard', [
         $ionicConfigProvider.form.toggle('large');
         $ionicConfigProvider.form.checkbox("circle");
 
-
         //Auth Configuration
         $authProvider.cordova = true;
         // Satellizer configuration that specifies which API
@@ -119,7 +118,7 @@ angular.module('ourBoard', [
 
             .state('tab.activity-board', {
                 url: '/activity-board',
-                cache: false,
+                // cache: false, // ERROR! need to clear stateParams somehow if a reload is required on every entry to this state
                 views: {
                     'tab-activity-board': {
                         templateUrl: 'templates/activityBoardView.html',
@@ -134,7 +133,7 @@ angular.module('ourBoard', [
             })
             .state('tab.activity-details', {
                 url: '/activity-details/:activityId',
-                cache: false,
+                // cache: false, // ERROR! need to clear stateParams somehow if a reload is required on every entry to this state
                 views: {
                     'tab-activity-details': {
                         templateUrl: 'templates/activityDetailsView.html',
