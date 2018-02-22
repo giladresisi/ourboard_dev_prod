@@ -1,29 +1,29 @@
 <ion-modal-view align="center" class="general-modal-view" dir="rtl">
     <ion-content class="content general-modal-content stable-bg has-footer">
-        <div class="create-new-activity-edit-profile">
+        <div class="create-edit-activity-edit-profile">
             <div class="bar bar-header bar-calm">
                 <h1 class="title">עריכת פרטים אישיים</h1>
             </div>
             <ion-list class="list text-right">
                 <label class="item item-input item-stacked-label">
-            <span class="input-label">
-                <span>שם</span>
-                <!--<span class="mandatory">*</span>-->
-            </span>
+                    <span class="input-label">
+                        <span>שם</span>
+                        <!--<span class="mandatory">*</span>-->
+                    </span>
                     <input ng-model="profileData.displayName" type="text" placeholder="">
                 </label>
                 <label class="item item-input item-stacked-label">
-            <span class="input-label">
-                <span>טלפון</span>
-                <!--<span class="mandatory">*</span>-->
-            </span>
+                    <span class="input-label">
+                        <span>טלפון</span>
+                        <!--<span class="mandatory">*</span>-->
+                    </span>
                     <input ng-model="profileData.phone" type="text" placeholder="הוסף מספר טלפון">
                 </label>
                 <label ng-show="!userData.facebook" class="item item-input item-stacked-label">
-            <span class="input-label">
-                <span>אימייל</span>
-                <!--<span class="mandatory">*</span>-->
-            </span>
+                    <span class="input-label">
+                        <span>אימייל</span>
+                        <!--<span class="mandatory">*</span>-->
+                    </span>
                     <input class="disabled" ng-model="profileData.email" disabled type="text"
                            placeholder="הוסף כתובת אימייל">
                 </label>
@@ -32,14 +32,12 @@
                 </ion-checkbox>
                 <div ng-if="!!switchPass">
                     <label class="item item-input item-stacked-label">
-                        <input ng-model="profileData.password" type="text" placeholder="סיסמא ישנה">
+                        <input ng-model="profileData.oldPassword" type="text" placeholder="סיסמא ישנה">
                     </label>
                     <label class="item item-input item-stacked-label">
                         <input ng-model="profileData.newPassword" type="text" placeholder="סיסמא חדשה">
                     </label>
                 </div>
-
-
             </ion-list>
             <div class="errors">
                 <div ng-repeat="error in errors track by $index">

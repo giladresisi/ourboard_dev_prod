@@ -1,7 +1,15 @@
 angular.module('ourBoard').service('modalSrvc',
-    function (dataSrvc, $rootScope, $ionicModal, actionsAfterSignupSrvc, $state, $ionicPopup) {
+    function ($rootScope, $ionicModal, actionsAfterSignupSrvc, $state, $ionicPopup) {
         var that = this;
         $rootScope.activeModal = undefined;
+
+        var drtvNames = [
+            'signUpDrtv',
+            'createEditActivityDrtv',
+            'loginDrtv',
+            'editProfileDrtv',
+            'remarksDrtv'
+        ]; // just for documentation
 
         that.showModal = function (drtvName, args) {
             //First remove previousModal

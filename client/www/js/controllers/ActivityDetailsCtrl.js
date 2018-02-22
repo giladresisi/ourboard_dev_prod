@@ -94,7 +94,7 @@ angular.module('ourBoard').controller('ActivityDetailsCtrl',
         };
 
         $scope.editActivity = function () {
-            modalSrvc.showModal('editActivityDrtv', $scope.activity);
+            modalSrvc.showModal('createEditActivityDrtv', $scope.activity);
         };
         $scope.customBack = function () {
             $state.go('tab.activity-board');

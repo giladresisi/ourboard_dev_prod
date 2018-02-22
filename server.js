@@ -26,21 +26,21 @@ var request = require('request');
 var fs = require('fs');
 var AWS = require('aws-sdk');
 var awsConfig = new AWS.Config({
-  accessKeyId: config.S3_ACCESS_KEY_ID,
-  secretAccessKey: config.S3_SECRET_ACCESS_KEY,
-  region: config.S3_REGION
+    accessKeyId: config.S3_ACCESS_KEY_ID,
+    secretAccessKey: config.S3_SECRET_ACCESS_KEY,
+    region: config.S3_REGION
 });
 var s3 = new AWS.S3(awsConfig);
 var multer = require('multer');
 var imgDestPath = 'uploads/';
 var storage = multer.diskStorage({
-  destination: imgDestPath,
-  filename: function (req, file, cb) {
-    req.datetimeUploadedMS = (new Date()).getTime();
-    cb(null, req.datetimeUploadedMS.toString() + '_' + file.fieldname);
-  }
+    destination: imgDestPath,
+    filename: function (req, file, cb) {
+        req.datetimeUploadedMS = (new Date()).getTime();
+        cb(null, req.datetimeUploadedMS.toString() + '_' + file.fieldname);
+    }
 });
-var upload = multer({ storage: storage });
+var upload = multer({storage: storage});
 var any = upload.any();
 
 /**
@@ -147,7 +147,12 @@ app.get('/api/me', ensureAuthenticated, function (req, res) {
                 console.log('get(/api/me) error: db.collection()');
                 return res.status(500).send({message: err.message});
             }
-            users.findOne({"_id": new ObjectId(req.user)}, {fields: {password: 0, activities: 0}}, function (err, user) {
+            users.findOne({_id: new ObjectId(req.user)}, {
+                projection: {
+                    password: 0,
+                    activities: 0
+                }
+            }, function (err, user) {
                 if (err) {
                     console.log('get(/api/me) error: collection.findOne()');
                     return res.status(500).send({message: err.message});
@@ -160,32 +165,18 @@ app.get('/api/me', ensureAuthenticated, function (req, res) {
 
 /*
  |--------------------------------------------------------------------------
- | Aux function to save & send new user data
+ | Aux function to update user data
  |--------------------------------------------------------------------------
  */
-function saveAndSendNewUserData(user, users, res, req, newUserObjectForSet) {
-    users.findOne({email: user.email}, function (err, existingUser) {
+function updateUserData(users, userId, newUser, callback) {
+    users.updateOne({_id: new ObjectId(userId)}, {
+        $set: newUser
+    }, function(err, updatedUser) {
         if (err) {
-            console.log('post(/api/me) error: collection.findOne()');
+            console.log('post(/api/me) error: collection.updateOne()');
             return res.status(500).send({message: err.message});
         }
-        if (existingUser._id.toString() !== req.user) {
-            console.log('post(/api/me) error: Email is already taken');
-            return res.status(409).send({message: 'Email is already taken by another user'});
-        }
-        else {
-            users.updateOne({"_id": new ObjectId(user._id.toString())}, {
-                $set: newUserObjectForSet
-            }, function (err) {
-                if (!err) {
-                    users.findOne({email: req.body.email}, function (err, newUser) {
-                        if (!err) {
-                            res.status(200).send({token: createJWT(newUser)});
-                        }
-                    });
-                }
-            });
-        }
+        callback(updatedUser);
     });
 }
 
@@ -201,30 +192,49 @@ app.post('/api/me', ensureAuthenticated, function (req, res) {
                 console.log('post(/api/me) error: db.collection()');
                 return res.status(500).send({message: err.message});
             }
-            users.findOne({"_id": new ObjectId(req.user)}, function (err, user) {
+            users.findOne({_id: new ObjectId(req.user)}, function (err, user) {
                 if (err) {
                     console.log('post(/api/me) error: collection.findOne()');
                     return res.status(500).send({message: err.message});
-                }
-                else if (user) {
-                    var newUserObjectForSet = {};
-                    newUserObjectForSet.displayName = req.body.displayName || user.displayName;
-                    newUserObjectForSet.phone = req.body.phone || user.phone;
-
-                    if (req.body.newPassword && req.body.password) {
-                        comparePassword(user.password, req.body.password, function (err, isMatch) {
+                } else if (user) {
+                    var newUser = {};
+                    newUser.displayName = req.body.displayName || user.displayName;
+                    newUser.phone = req.body.phone || user.phone;
+                    if (req.body.newPassword && req.body.oldPassword) {
+                        comparePassword(user.password, req.body.oldPassword, function (err, isMatch) {
                             if (!isMatch) {
-                                console.log('post(/auth/login +) error: Passwords do not match - ' + req.body.password + ' ' + user.password);
-                                return res.status(402).send({message: 'Passwords do not match'});
+                                console.log('post(/api/me +) error: Old password does not match - ' + req.body.oldPassword + ' ' + user.password);
+                                return res.status(403).send({message: 'Old password does not match'});
                             }
-                            console.log('post(/auth/login) success: user = ' + JSON.stringify(user));
                             hashPassword(req.body.newPassword, function (hashed) {
-                                newUserObjectForSet.password = hashed;
-                                saveAndSendNewUserData(user, users, res, req, newUserObjectForSet);
+                                newUser.password = hashed;
                             });
                         });
+                    }
+                    if (req.body.email) {
+                        if (user.facebook) {
+                            console.log('post(/api/me) error: User signed up using facebook, disallowed to change email');
+                            return res.status(401).send({message: err.message});
+                        } else {
+                            users.findOne({email: req.body.email}, function (err, existingUser) {
+                                if (err != null) {
+                                    console.log('post(/api/me) error: collection.findOne()');
+                                    return res.status(500).send({message: err.message});
+                                }
+                                if (existingUser) {
+                                    console.log('post(/api/me) error: New email is used by another user');
+                                    return res.status(402).send({message: 'New email is used by another user'});
+                                }
+                                newUser.email = req.body.email;
+                                updateUserData(users, user._id.toString(), newUser, function(updatedUser) {
+                                    res.send(updatedUser);
+                                });
+                            });
+                        }
                     } else {
-                        saveAndSendNewUserData(user, users, res, req, newUserObjectForSet);
+                        updateUserData(users, user._id.toString(), newUser, function(updatedUser) {
+                            res.send(updatedUser);
+                        });
                     }
                 } else {
                     res.status(500).send({message: 'User is not authenticated please login'});
@@ -276,7 +286,7 @@ app.post('/auth/login', function (req, res) {
                 console.log('post(/auth/login) error: db.collection()');
                 return res.status(500).send({message: err.message});
             }
-            users.findOne({email: req.body.email}, {fields: {password: 1}}, function (err, user) {
+            users.findOne({email: req.body.email}, {projection: {password: 1}}, function (err, user) {
                 if (err != null) {
                     console.log('post(/auth/login) error: collection.findOne()');
                     return res.status(500).send({message: err.message});
@@ -1411,11 +1421,11 @@ app.get('/activity/all', ensureAuthenticated, function (req, res) {
                         console.log('get(/activity/all) error: db.collection(users)');
                         return res.status(500).send({message: err.message});
                     }
-                    var organizerIDs = activityArr.map(function(activity) {
+                    var organizerIDs = activityArr.map(function (activity) {
                         return new ObjectId(activity.organizer);
                     });
                     users.find({_id: {$in: organizerIDs}}, {
-                        fields: {
+                        projection: {
                             displayName: 1
                         }
                     }).toArray(function (err, organizerArr) {
@@ -1423,7 +1433,7 @@ app.get('/activity/all', ensureAuthenticated, function (req, res) {
                             console.log('get(/activity/all) error: collection.find(activities.organizers)');
                             return res.status(500).send({message: err.message});
                         }
-                        organizerIDs = organizerArr.map(function(organizer) {
+                        organizerIDs = organizerArr.map(function (organizer) {
                             return organizer._id.toString();
                         });
                         var i;
@@ -1474,11 +1484,11 @@ app.get('/guest/activity/all', function (req, res) {
                         console.log('get(/guest/activity/all) error: db.collection(users)');
                         return res.status(500).send({message: err.message});
                     }
-                    var organizerIDs = activityArr.map(function(activity) {
+                    var organizerIDs = activityArr.map(function (activity) {
                         return new ObjectId(activity.organizer);
                     });
                     users.find({_id: {$in: organizerIDs}}, {
-                        fields: {
+                        projection: {
                             displayName: 1
                         }
                     }).toArray(function (err, organizerArr) {
@@ -1486,7 +1496,7 @@ app.get('/guest/activity/all', function (req, res) {
                             console.log('get(/guest/activity/all) error: collection.find(activities.organizers)');
                             return res.status(500).send({message: err.message});
                         }
-                        organizerIDs = organizerArr.map(function(organizer) {
+                        organizerIDs = organizerArr.map(function (organizer) {
                             return organizer._id.toString();
                         });
                         var i;
@@ -1539,7 +1549,7 @@ app.get('/activity/single/:id', ensureAuthenticated, function (req, res) {
                             return new ObjectId(userId);
                         });
                         users.find({_id: {$in: userIDs}}, {
-                            fields: {
+                            projection: {
                                 _id: 1,
                                 displayName: 1
                             }
@@ -1550,11 +1560,16 @@ app.get('/activity/single/:id', ensureAuthenticated, function (req, res) {
                             }
                             activity.participants = userArr;
                             activity.participants.sort(function (p1, p2) {
-                                if (p1.displayName < p2.displayName) {return -1;}
-                                if (p1.displayName > p2.displayName) {return 1;}
+                                if (p1.displayName < p2.displayName) {
+                                    return -1;
+                                }
+                                if (p1.displayName > p2.displayName) {
+                                    return 1;
+                                }
                                 return 0;
                             });
                             delete activity.users; // create users list in client using participants list
+                            delete activity.organizer;
                             res.send(activity);
                         });
                     });
@@ -1602,6 +1617,40 @@ app.get('/guest/activity/single/:id', function (req, res) {
         });
     });
 });
+
+/*
+ |--------------------------------------------------------------------------
+ | GET /activity/titles - Get Activity Titles suggestions
+ |--------------------------------------------------------------------------
+ */
+app.get('/activity/titles', function (req, res) {
+    MongoPool.getInstance(function (db) {
+        db.collection('activity_titles', function (err, titles) {
+            titles.find().toArray(function (err, titlesArr) {
+                res.send(titlesArr);
+            });
+        });
+    });
+});
+
+/*
+ |--------------------------------------------------------------------------
+ | removeImage - Remove uploaded image after its handling wih S3 is done
+ |--------------------------------------------------------------------------
+ */
+function removeImage(imgName) {
+    var imgPath = imgDestPath + imgName;
+    fs.unlink(imgPath, function (err) {
+        if (err) {
+            if (err.code == 'ENOENT') {
+                // file doens't exist
+                console.log("File " + imgPath + " doesn't exist, won't remove it.");
+            } else {
+                console.log("Error occurred while trying to remove file " + imgPath);
+            }
+        }
+    });
+};
 
 /*
  |--------------------------------------------------------------------------
@@ -1662,20 +1711,6 @@ app.post('/activity/create', ensureAuthenticated, function (req, res) {
         });
     });
 });
-
-function removeImage(imgName) {
-    var imgPath = imgDestPath + imgName;
-    fs.unlink(imgPath, function(err) {
-    if(err) {
-        if (err.code == 'ENOENT') {
-            // file doens't exist
-            console.log("File " + imgPath + " doesn't exist, won't remove it.");
-        } else {
-            console.log("Error occurred while trying to remove file " + imgPath);
-        }
-    }
-});
-};
 
 /*
  |--------------------------------------------------------------------------
@@ -1744,10 +1779,10 @@ app.post('/activity/create/image', ensureAuthenticated, any, function (req, res)
                             }, function (err) {
                                 if (err) {
                                     var params = {
-                                        Bucket: config.S3_BUCKET, 
+                                        Bucket: config.S3_BUCKET,
                                         Key: activity._id.toString() + '/' + activity.imgName
                                     };
-                                    s3.deleteObject(params, function(err) {
+                                    s3.deleteObject(params, function (err) {
                                         if (err) {
                                             console.log(err, err.stack); // an error occurred
                                             return res.status(500).send({message: err.message});
@@ -1800,7 +1835,7 @@ app.post('/activity/update', ensureAuthenticated, function (req, res) {
                             console.log('post(/activity/update) error: db.collection(activity)');
                             return res.status(500).send({message: err.message});
                         }
-                        if(activity && activity.organizer !== user._id.toString()){
+                        if (activity && activity.organizer !== user._id.toString()) {
                             console.log('post(/activity/update) error: db.collection(activity)');
                             return res.status(500).send({message: 'Activity Does Not Belong to User'});
                         }
@@ -1812,20 +1847,20 @@ app.post('/activity/update', ensureAuthenticated, function (req, res) {
                                     location: req.body.location,
                                     extraDetails: req.body.extraDetails,
                                     datetimeMS: req.body.datetimeMS
-                                }, 
+                                },
                                 $unset: {
                                     imgName: "" // Remove imgName field
                                 }
-                            }, function(err){
+                            }, function (err) {
                                 if (err) {
                                     console.log('post(/activity/update) error: activities.updateOne(newActivity) - image change');
                                     return res.status(500).send({message: err.message});
                                 }
                                 var params = {
-                                    Bucket: config.S3_BUCKET, 
+                                    Bucket: config.S3_BUCKET,
                                     Key: activity._id + '/' + imgName
                                 };
-                                s3.deleteObject(params, function(err) {
+                                s3.deleteObject(params, function (err) {
                                     if (err) {
                                         console.log(err, err.stack); // an error occurred
                                         return res.status(500).send({message: err.message});
@@ -1841,7 +1876,7 @@ app.post('/activity/update', ensureAuthenticated, function (req, res) {
                                     extraDetails: req.body.extraDetails,
                                     datetimeMS: req.body.datetimeMS
                                 }
-                            }, function(err){
+                            }, function (err) {
                                 if (err) {
                                     console.log('post(/activity/update) error: activities.updateOne(newActivity) - no image change');
                                     return res.status(500).send({message: err.message});
@@ -1893,7 +1928,7 @@ app.post('/activity/update/image', ensureAuthenticated, any, function (req, res)
                             removeImage(req.files[0].filename);
                             return res.status(500).send({message: err.message});
                         }
-                        if(activity && activity.organizer !== user._id.toString()){
+                        if (activity && activity.organizer !== user._id.toString()) {
                             console.log('post(/activity/update) error: db.collection(activity)');
                             removeImage(req.files[0].filename);
                             return res.status(500).send({message: 'Activity Does Not Belong to User'});
@@ -1908,7 +1943,7 @@ app.post('/activity/update/image', ensureAuthenticated, any, function (req, res)
                                 datetimeMS: parseInt(req.body.datetimeMS),
                                 imgName: newImgName // Update image name even if removed & re-added the same image (can't tell if different)
                             }
-                        }, function(err){
+                        }, function (err) {
                             if (err) {
                                 console.log('post(/activity/update) error: activities.updateOne(newActivity) - image change');
                                 removeImage(req.files[0].filename);
@@ -1928,16 +1963,16 @@ app.post('/activity/update/image', ensureAuthenticated, any, function (req, res)
                                 }
                                 if (oldImgName) { // if exists, delete old image from S3
                                     params = {
-                                        Bucket: config.S3_BUCKET, 
+                                        Bucket: config.S3_BUCKET,
                                         Key: activity._id + '/' + oldImgName
                                     };
-                                    s3.deleteObject(params, function(err) {
+                                    s3.deleteObject(params, function (err) {
                                         if (err) {
                                             console.log(err, err.stack); // an error occurred
                                             res.status(500).send({message: err.message});
                                         }
                                         return res.send(activity);
-                                     });
+                                    });
                                 } else {
                                     return res.send(activity);
                                 }
@@ -2062,19 +2097,19 @@ app.post('/activity/leave', ensureAuthenticated, function (req, res) {
                             console.log('post(/activity/leave) error: No such activity');
                             return res.status(409).send({message: 'No such activity'});
                         }
-                        var activityIndex = user.activities.findIndex(function(userActId) { 
+                        var activityIndex = user.activities.findIndex(function (userActId) {
                             return (userActId == activity._id.toString());
                         });
                         if (activityIndex == -1) {
                             console.log('post(/activity/leave) error: User does not contain activity');
                             return res.status(406).send({message: 'User does not contain activity'});
                         }
-                        var userIndex = activity.users.findIndex(function(actUserId) { 
+                        var userIndex = activity.users.findIndex(function (actUserId) {
                             return (actUserId == user._id.toString());
                         });
                         if (userIndex == -1) {
                             console.log('post(/activity/leave) error: activity does not contain user');
-                            return res.status(407).send({message: 'activity does not contain user'});;
+                            return res.status(407).send({message: 'activity does not contain user'});
                         }
                         user.activities.splice(activityIndex, 1);
                         users.updateOne({_id: new ObjectId(user._id)}, {
@@ -2111,7 +2146,7 @@ app.post('/activity/leave', ensureAuthenticated, function (req, res) {
  | POST /remark - Append remark to remarks collection
  |--------------------------------------------------------------------------
  */
-app.post('/api/remarks',ensureAuthenticated, function (req, res) {
+app.post('/api/remarks', ensureAuthenticated, function (req, res) {
     MongoPool.getInstance(function (db) {
         db.collection('users', function (err, users) {
             if (err !== null) {
@@ -2133,7 +2168,7 @@ app.post('/api/remarks',ensureAuthenticated, function (req, res) {
                             console.log('post(/api/remarks) error: collection.insertOne()');
                             return res.status(500).send({message: err.message});
                         }
-                        else{
+                        else {
                             return res.status(200).end();
                         }
                     });
@@ -2144,6 +2179,24 @@ app.post('/api/remarks',ensureAuthenticated, function (req, res) {
 
     });
 });
+
+/*
+ |--------------------------------------------------------------------------
+ | GET /community-info - Get CommunityInfo
+ |--------------------------------------------------------------------------
+ */
+app.get('/community-info/all', function (req, res) {
+    MongoPool.getInstance(function (db) {
+        db.collection('community_info', function (err, communityInfoItems) {
+            communityInfoItems.find({}/*, {projection: {
+                    TODO only titles & descriptions
+                }}*/).toArray(function (err, communityInfoItemsArr) {
+                res.send(communityInfoItemsArr);
+            });
+        });
+    });
+});
+
 
 /**
  * Normalize a port into a number, string, or false.
@@ -2208,7 +2261,7 @@ function onListening() {
 }
 
 // Init the mongodb connection pool before creating the server and listening
-MongoPool.getInstance(function(){
+MongoPool.getInstance(function () {
 
     /**
      * Create HTTP server.
@@ -2216,9 +2269,9 @@ MongoPool.getInstance(function(){
 
     server = http.createServer(app);
 
-/**
- * Listen on provided port, on all network interfaces.
- */
+    /**
+     * Listen on provided port, on all network interfaces.
+     */
 
     server.listen(port);
     server.on('error', onError);

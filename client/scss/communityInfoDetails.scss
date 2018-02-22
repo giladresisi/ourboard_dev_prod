@@ -1,0 +1,21 @@
+@import "variables";
+
+.community-info-details {
+
+    .row.row-border{
+        border-bottom: 1px solid black;
+    }
+    .description{
+        margin: 10px 0;
+        font-size: 17px;
+    }
+    .info-item{
+        padding: 12px;
+        font-size: 16px;
+        text-align: right;
+    }
+    .col-100.title{
+        font-weight: bold;
+    }
+
+}

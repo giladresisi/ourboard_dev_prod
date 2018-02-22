@@ -1,15 +1,22 @@
 angular.module('ourBoard').controller('ProfileCtrl',
     function ($scope, authSrvc, modalSrvc, $state, dataSrvc, $auth, $timeout, actionsAfterSignupSrvc, $rootScope) {
-        var beforeEnter = function (event, viewData) {
-            authSrvc.getUser().then(function (userData) {
+        
+        function getUserData(forceFromServer) {
+            authSrvc.getUser(forceFromServer).then(function (userData) {
                 $scope.isLoggedIn = !!userData;
                 $scope.userData = userData;
             });
+        }
+
+        var beforeEnter = function (event, viewData) {
+            getUserData();
         };
 
         $scope.$on('$ionicView.beforeEnter', beforeEnter);
 
-        $rootScope.$on('REFRESH_USER_PROFILE', beforeEnter);
+        $rootScope.$on('REFRESH_USER_PROFILE', function(event, viewData) {
+            getUserData(true);
+        });
 
         $scope.signUp = function () {
             modalSrvc.showModal('signUpDrtv');

@@ -14,6 +14,7 @@ angular.module('ourBoard', [
     'ngFileUpload'
 ])
     .constant('ENV', {
+        FREE_TEXT_ID: 'FREE_TEXT',
         TOKEN_NAME: 'OurBoard_token',
         DEV_URL: '',
         S3_URL: 'http://ourboard-dev.s3-website-us-west-2.amazonaws.com',
@@ -88,12 +89,12 @@ angular.module('ourBoard', [
                 }
             })
 
-            .state('tab.dummy1', {
-                url: '/dummy1',
+            .state('tab.communityInfo', {
+                url: '/communityInfo',
                 views: {
-                    'tab-dummy1': {
-                        templateUrl: 'templates/dummy1.html',
-                        controller: 'DummyCtrl'
+                    'community-info': {
+                        templateUrl: 'templates/communityInfoView.html',
+                        controller: 'CommunityInfoCtrl'
                     }
                 }
             })
@@ -144,6 +145,19 @@ angular.module('ourBoard', [
                     'showParticipants': false,
                     'showOrganizerPhone': false,
                     'joinActivity': false
+                }
+            })
+            .state('tab.community-info-details', {
+                url: '/community-info-details/:communityInfoId',
+                // cache: false, // ERROR! need to clear stateParams somehow if a reload is required on every entry to this state
+                views: {
+                    'tab-community-info-details': {
+                        templateUrl: 'templates/communityInfoDetailsView.html',
+                        controller: 'CommunityInfoDetailsCtrl'
+                    }
+                },
+                params: {
+                    'info': false
                 }
             });
 

@@ -9,7 +9,8 @@ angular.module('ourBoard').service('actionsAfterSignupSrvc',
             'RSVP',
             'CREATE_NEW_ACTIVITY',
             'VIEW_ACTIVITY_PARTICIPANT',
-            'VIEW_ACTIVITY_ORGANIZER'
+            'VIEW_ACTIVITY_ORGANIZER',
+            'VIEW_COMMUNITY_INFO_DETAILS'
         ]; // just for documentation
 
         that.addAction = function (actionName, actionParamsObj) {
@@ -25,17 +26,11 @@ angular.module('ourBoard').service('actionsAfterSignupSrvc',
         that.performAction = function (actionName) {
             switch (actionName) {
                 case 'RSVP':
-                    that.removeAction(actionName);
-                    return $q.resolve();
                 case 'CREATE_NEW_ACTIVITY':
-                    that.removeAction(actionName);
-                    return $q.resolve();
                 case 'VIEW_ACTIVITY_PARTICIPANT':
-                    that.removeAction(actionName);
-                    return $q.resolve();
                 case 'VIEW_ACTIVITY_ORGANIZER':
+                case 'VIEW_COMMUNITY_INFO_DETAILS':
                     that.removeAction(actionName);
-                    return $q.resolve();
                 default:
                     return $q.resolve({});
             }

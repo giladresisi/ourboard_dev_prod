@@ -16,7 +16,6 @@ angular.module('ourBoard').directive('activityBoardItemDrtv',
                     });
                 }
 
-
                 $scope.goToActivity = function () {
                     $state.go('tab.activity-details', {activityId: $scope.activity._id})
                 };
@@ -26,6 +25,12 @@ angular.module('ourBoard').directive('activityBoardItemDrtv',
                        init();
                     }
                 }))
+
+                $scope.$on('$destroy', function (event) {
+                    $scope.watchers.forEach(function (destroy) {
+                        destroy && destroy();
+                    })
+                })
             }
         }
     });

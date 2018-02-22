@@ -1,24 +1,25 @@
 <ion-modal-view align="center" class="general-modal-view" dir="rtl">
     <ion-content class="content general-modal-content stable-bg has-footer">
 
-        <div class="create-new-activity-edit-profile">
+        <div class="create-edit-activity-edit-profile">
             <div class="bar bar-header bar-calm">
                 <h1 class="title" ng-if="!edit">יצירת פעילות חדשה</h1>
                 <h1 class="title" ng-if="edit">{{oldTitle}}</h1>
             </div>
             <div class="list text-right">
-                <label class="item item-input name-select {{newActivityData.nameId == 'FREE_TEXT' ? 'no-border' : ''}}">
-                    <select ng-model="newActivityData.nameId" name="nameId">
-                        <option ng-repeat="item in nameOptions track by item.id" ng-disabled="!item.id" ng-selected="{{newActivityData.nameId==item.id}}" value="{{item.id}}">
-                            {{item.display}}
+                <label class="item item-input name-select {{activityData.titleId == freeTextId ? 'no-border' : ''}}">
+                    <select ng-model="activityData.titleId" name="titleId">
+                        <option ng-repeat="title in titleOptions track by title._id" ng-disabled="!title._id"
+                            ng-selected="{{activityData.titleId == title._id}}" value="{{title._id}}">
+                            {{title.display}}
                         </option>
                     </select>
                     <span class="mandatory">*</span>
                 </label>
 
-                <label class="item item-input free-text" ng-show="newActivityData.nameId == 'FREE_TEXT'">
+                <label class="item item-input free-text" ng-show="activityData.titleId == freeTextId">
                     <input
-                        ng-model="newActivityData.freeName"
+                        ng-model="activityData.freeText"
                         type="text"
                         placeholder="הקלד שם לפעילות"
                         maxlength="20"
@@ -26,13 +27,13 @@
                 </label>
 
                 <label class="item item-input ion-datetime-picker item-stacked-label" ion-datetime-picker
-                       ng-model="newActivityData.datetimeValue">
+                       ng-model="activityData.datetimeValue">
 		            <span class="input-label">
 		                <span>תאריך ושעה</span>
 		                <span class="mandatory">*</span>
 		            </span>
                     <div class="date-time-text">
-                        {{newActivityData.datetimeValue | date: "yyyy-MM-dd H:mm:ss"}}
+                        {{activityData.datetimeValue | date: "yyyy-MM-dd H:mm:ss"}}
                     </div>
                 </label>
 
@@ -41,7 +42,7 @@
 		                <span>מיקום</span>
 		                <span class="mandatory">*</span>
 		            </span>
-                    <input ng-model="newActivityData.location" type="text" placeholder="">
+                    <input ng-model="activityData.location" type="text" placeholder="">
                 </label>
 
                 <label class="item item-input item-stacked-label">
@@ -51,18 +52,19 @@
                     <textarea
                         class="additional-info"
                         rows="4"
-                        ng-model="newActivityData.additionalInfo"
+                        ng-model="activityData.additionalInfo"
                         placeholder="הוסף פרטים נוספים על האירוע">
             		</textarea>
                 </label>
 
                 <div class="item item-input item-stacked-label">
-                    <button type="file" ngf-select="selectImg($file)" ngf-accept="'image/*'" ngf-fix-orientation="true" ngf-resize="{width: 500}">{{imageBtnText}}</button>
-                    <button ng-click="clearImage()" ng-if="newActivityData.image">הסר תמונה</button>
-                    <button ng-click="restoreOrigImage()" ng-if="edit && imgChange && newActivityData.imageUrl">תמונה מקורית</button>
-                    <div class="preview" ng-if="newActivityData.image">
+                    <button type="file" ngf-select="selectImg($file)" ngf-accept="'image/*'" ngf-fix-orientation="true"
+                        ngf-resize="{width: 500}">{{imageBtnText}}</button>
+                    <button ng-click="clearImage()" ng-if="activityData.image">הסר תמונה</button>
+                    <button ng-click="restoreOrigImage()" ng-if="edit && imgChange && activityData.imageUrl">תמונה מקורית</button>
+                    <div class="preview" ng-if="activityData.image">
                         <br>
-                        <img ngf-src="newActivityData.image" style="width: 100%; height: auto">
+                        <img ngf-src="activityData.image" style="width: 100%; height: auto">
                     </div>
                 </div>
 

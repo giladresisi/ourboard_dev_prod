@@ -58,6 +58,14 @@ angular.module('ourBoard').value('apiMap', {
     facebookCordovaLogin: {
         urlTemplate: '/auth/facebook',
         method: 'POST'
+    },
+    getActivityTitles: {
+        urlTemplate: '/activity/titles',
+        method: 'GET'
+    },
+    getCommunityInfos: {
+        urlTemplate: '/community-info/all',
+        method: 'GET'
     }
 
 });

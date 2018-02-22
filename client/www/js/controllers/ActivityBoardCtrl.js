@@ -67,7 +67,7 @@ angular.module('ourBoard').controller('ActivityBoardCtrl',
                     });
                 }
                 else {
-                    modalSrvc.showModal('createNewActivityDrtv');
+                    modalSrvc.showModal('createEditActivityDrtv');
                 }
             });
         };

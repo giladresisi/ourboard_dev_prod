@@ -22,14 +22,6 @@ angular.module('ourBoard').service('authSrvc',
             $auth.logout();
         };
 
-        /**
-         * Action Enums:
-         *      ORGANIZER_CLICK
-         *      PARTICIPANTS_CLICK
-         *      RSVP_CLICK
-         *
-         */
-
         this.getUser = function (forceFromServer) {
             if (that.hasToken() && !$auth.isAuthenticated()) {
                 that.logout();

@@ -43,24 +43,20 @@
             </div>
         </div>
 
-        <div class="row row-no-padding" ng-click="organizerClick()">
-            <div class="col col-10 text-col icon-col">
+        <div class="row row-no-padding">
+            <div class="col col-10 text-col icon-col" ng-click="organizerClick()">
                 <i class="ion-person"></i>
-                <div class="organizer-phone"
-                     ng-show="showOrganizerPhone">
-                    <i class="ion-android-phone-portrait"></i>
-                </div>
             </div>
             <div class="col col-90 text-col organizer positive">
-                <span> מארגן: </span>
-                <span>{{(activity.organizerName | limitTo: 20) +
+                <span ng-click="organizerClick()"> מארגן: </span>
+                <span ng-click="organizerClick()">{{(activity.organizerName | limitTo: 20) +
                             (activity.organizerName.length > 20 ? '...' : '')}}
                     <i ng-if="!showOrganizerPhone" class="ion-chevron-down"></i>
                     <i ng-if="showOrganizerPhone" class="ion-chevron-up"></i>
                 </span>
                 <div class="organizer-phone"
                      ng-show="showOrganizerPhone && activity.organizerPhone">
-                    {{activity.organizerPhone}}
+                     <a href="tel:{{activity.organizerPhone}}">{{activity.organizerPhone}}</a>
                 </div>
             </div>
         </div>
