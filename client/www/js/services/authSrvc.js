@@ -32,7 +32,12 @@ angular.module('ourBoard').service('authSrvc',
                     type: 'getUser'
                 }).then(function (res) {
                     that.userData = res.data;
-                    return $q.resolve(that.userData);
+                    if (!that.userData) {
+                        that.logout();
+                        return $q.resolve(that.userData);
+                    } else {
+                        return $q.resolve(that.userData);
+                    }
                 }, function (err) {
                     return null;
                 });
