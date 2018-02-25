@@ -16,7 +16,7 @@ navigation history that also transitions its views in and out.
     </ion-tab>
 
     <!-- Community Information Details Tab -->
-    <ion-tab hidden="true" title="פרטי פעילות" icon-off="ion-android-walk" icon-on="ion-android-walk" href="#/tab/activity-details">
+    <ion-tab hidden="true" title="פרטי פעילות" icon-off="ion-android-walk" icon-on="ion-android-walk" href="#/tab/community-info-details">
         <ion-nav-view name="tab-community-info-details"></ion-nav-view>
     </ion-tab>
 
@@ -31,7 +31,8 @@ navigation history that also transitions its views in and out.
     </ion-tab>
 
     <!-- Activity Board Tab -->
-    <ion-tab title="לוח פעילויות" icon-off="ion-android-walk" icon-on="ion-android-walk" href="#/tab/activity-board">
+    <!-- <ion-tab title="לוח פעילויות" icon-off="ion-android-walk" icon-on="ion-android-walk" href="#/tab/activity-board"> -->
+    <ion-tab title="לוח פעילויות" icon-off="ion-android-walk" icon-on="ion-android-walk" ng-click="goToActivityBoard()">
         <ion-nav-view name="tab-activity-board"></ion-nav-view>
     </ion-tab>
 

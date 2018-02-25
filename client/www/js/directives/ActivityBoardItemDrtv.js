@@ -17,7 +17,8 @@ angular.module('ourBoard').directive('activityBoardItemDrtv',
                 }
 
                 $scope.goToActivity = function () {
-                    $state.go('tab.activity-details', {activityId: $scope.activity._id})
+                    $state.go('tab.activity-details',
+                        {activityId: $scope.activity._id, showParticipants: false, showOrganizerPhone: false, joinActivity: false})
                 };
 
                 $scope.watchers.push($scope.$watch('activity',function (newVal, oldVal) {

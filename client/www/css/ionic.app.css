@@ -9936,6 +9936,8 @@ a.button {
     font-size: 0; }
   .activity-details .organizer-phone.ng-hide-remove {
     display: block !important; }
+  .activity-details .organizer-phone p {
+    color: black; }
 
 .activity-details .floating-button {
   background: #077bff;

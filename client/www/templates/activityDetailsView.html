@@ -43,6 +43,10 @@
         <div class="row row-no-padding">
             <div class="col col-10 text-col icon-col" ng-click="organizerClick()">
                 <i class="ion-person"></i>
+                <div class="organizer-phone"
+                     ng-show="showOrganizerPhone">
+                    <i class="ion-android-phone-portrait"></i>
+                </div>
             </div>
             <div class="col col-90 text-col organizer positive">
                 <span ng-click="organizerClick()"> מארגן: </span>
@@ -52,8 +56,9 @@
                     <i ng-if="showOrganizerPhone" class="ion-chevron-up"></i>
                 </span>
                 <div class="organizer-phone"
-                     ng-show="showOrganizerPhone && activity.organizerPhone">
-                     <a href="tel:{{activity.organizerPhone}}">{{activity.organizerPhone}}</a>
+                     ng-show="showOrganizerPhone">
+                     <a href="tel:{{activity.organizerPhone}}" ng-if="activity.organizerPhone">{{activity.organizerPhone}}</a>
+                     <p ng-if="!activity.organizerPhone">לא הוגדר טלפון</p>
                 </div>
             </div>
         </div>

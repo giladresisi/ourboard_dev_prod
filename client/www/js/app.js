@@ -38,7 +38,6 @@ angular.module('ourBoard', [
                 StatusBar.styleDefault();
             }
         });
-
     })
 
     .config(function ($stateProvider, $urlRouterProvider, $ionicConfigProvider, $authProvider, localStorageServiceProvider, ENV) {
@@ -74,6 +73,7 @@ angular.module('ourBoard', [
             .state('tab', {
                 url: '/tab',
                 abstract: true,
+                controller: "TabsCtrl",
                 templateUrl: 'templates/tabs.html'
             })
 
