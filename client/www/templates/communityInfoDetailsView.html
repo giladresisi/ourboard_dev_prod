@@ -1,9 +1,6 @@
 <ion-view align="center" class="community-info-details" dir="rtl" hide-nav-bar="true" cache-view="false">
-    <ion-nav-title>
-        {{title}}
-    </ion-nav-title>
     <ion-header-bar class="bar-calm">
-        <h1 class="title">{{title}}</h1>
+        <h1 class="title">{{infoData.title}}</h1>
         <div class="buttons back-btn btn">
             <h2>
                 <i class="icon ion-arrow-right-c" ng-click="customBack()"></i>
@@ -11,8 +8,8 @@
         </div>
     </ion-header-bar>
     <ion-content on-scroll="onScroll()" class="content stable-bg">
-        <div class="description">{{description}}</div>
-        <div ng-repeat="infoItem in infoData track by $index" class="info-item">
+        <div class="description">{{infoData.infoPage.description}}</div>
+        <div ng-repeat="infoItem in infoData.infoPage.infoItems track by $index" class="info-item">
             <div class="row">
                 <div class="col-100 title">
                     {{infoItem.title}}
@@ -27,10 +24,10 @@
                 <div class="col-100">
                     <a ng-if="infoItem.actionType === 'phone'" href="tel:{{infoItem.actionText}}">{{infoItem.actionText}}</a>
                     <span ng-if="infoItem.actionType === 'text'">{{infoItem.actionText}}</span>
-                    <a ng-if="infoItem.actionType === 'link'" href="{{infoItem.actionText}}">{{infoItem.actionText}}</a>
+                    <!-- <a ng-if="infoItem.actionType === 'link'" href="{{infoItem.actionText}}">{{infoItem.actionText}}</a> -->
+                    <a ng-if="infoItem.actionType === 'link'" ng-click="goToLink(infoItem.actionText)">{{infoItem.actionText}}</a>
                 </div>
             </div>
         </div>
-
     </ion-content>
 </ion-view>

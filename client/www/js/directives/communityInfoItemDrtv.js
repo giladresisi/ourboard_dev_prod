@@ -14,11 +14,11 @@ angular.module('ourBoard').directive('communityInfoItemDrtv',
                         if (!userData) {
                             modalSrvc.showGuestRestrictedActionModal('VIEW_COMMUNITY_INFO_DETAILS', {
                                 redirectionState: 'tab.community-info-details',
-                                redirectionStateParams: {info: $scope.info}
+                                redirectionStateParams: {communityInfoId: $scope.info._id}
                             });
                         }
                         else {
-                            $state.go('tab.community-info-details', {info: $scope.info});
+                            $state.go('tab.community-info-details', {communityInfoId: $scope.info._id});
                         }
                     });
                 };

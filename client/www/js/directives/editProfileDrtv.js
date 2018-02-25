@@ -27,18 +27,25 @@ angular.module('ourBoard').directive('editProfileDrtv',
                     // if (!$scope.profileData.password || $scope.profileData.password.length < 6) {
                     //     $scope.errors.push('אנא הזן סיסמא בת 6 תווים לפחות');
                     // }
+                    if (($scope.userData.displayName == $scope.profileData.displayName) && ($scope.userData.email == $scope.profileData.email) &&
+                        ($scope.userData.phone == $scope.profileData.phone) && (!$scope.switchPass)) {
+                        $scope.errors.push('אנא שנה פרט אחד לפחות או לחץ ביטול');
+                    }
 
                     if ($scope.errors.length === 0) {
-                        var args = {
-                            displayName: $scope.profileData.displayName,
-                            phone: $scope.profileData.phone
+                        var args = {};
+                        if ($scope.userData.displayName != $scope.profileData.displayName) {
+                            args.displayName = $scope.profileData.displayName;
                         }
-                        if (!$scope.userData.facebook) {
+                        if ($scope.userData.phone != $scope.profileData.phone) {
+                            args.phone = $scope.profileData.phone;
+                        }
+                        if (!$scope.userData.facebook && ($scope.userData.email != $scope.profileData.email)) {
                             args.email = $scope.profileData.email;
                         }
                         if ($scope.switchPass) {
                             args.newPassword = $scope.profileData.newPassword;
-                            args.oldPassword = $scope.profileData.oldPassword;
+                            // args.oldPassword = $scope.profileData.oldPassword;
                         }
                         dataSrvc.api({
                             type: 'updateUser',

@@ -5,10 +5,13 @@ angular.module('ourBoard').directive('createEditActivityDrtv',
             templateUrl: 'templates/createEditActivityView.html',
             link: function ($scope, element, attrs) {
                 $scope.errors = [];
-                $scope.edit = ($rootScope.activeModal.args.activityId != undefined);
+                $scope.edit = ($rootScope.activeModal.args._id != undefined);
                 $scope.imgChange = false;
                 $scope.oldTitle = '';
                 $scope.freeTextId = ENV.FREE_TEXT_ID;
+                $scope.orgActivity = {};
+                $scope.image = undefined;
+                $scope.activityData = {};
 
                 $scope.titleOptions = [];
                 if (!$scope.edit) {
@@ -36,20 +39,22 @@ angular.module('ourBoard').directive('createEditActivityDrtv',
                         titleId: null,
                         freeText: '',
                         location: '',
-                        additionalInfo: '',
-                        image: undefined
+                        additionalInfo: ''
                     };
                     if ($scope.edit) {
                         $scope.activityData = convertDataFormat($rootScope.activeModal.args);
                         if ($scope.activityData.imageUrl) {
-                            $scope.activityData.image = $scope.activityData.imageUrl;
+                            $scope.image = $scope.activityData.imageUrl;
                             $scope.imageBtnText = 'החלף תמונה';
                         }
+                        $scope.orgActivity = $scope.activityData;
                     }
                 }
 
-                $scope.createActivity = function () {
+                $scope.createEditActivity = function () {
                     $scope.errors = [];
+                    var args = undefined, fd = undefined, apiType = '';
+                    var title = $scope.activityData.titleId === $scope.freeTextId ? $scope.activityData.freeText : _.findWhere($scope.titleOptions, {_id: $scope.activityData.titleId}).display;
 
                     if(!$scope.activityData.titleId){
                         $scope.errors.push('אנא הזן כותרת תקינה לאירוע');
@@ -71,18 +76,28 @@ angular.module('ourBoard').directive('createEditActivityDrtv',
                         $scope.errors.push('אנא הזן את מיקום האירוע');
                     }
 
+                    if ($scope.edit && !$scope.imgChange && ($scope.activityData == $scope.orgActivity) && ($scope.oldTitle == title)) {
+                        $scope.errors.push('אנא שנה פרט אחד לפחות או לחץ ביטול');
+                    }
+
                     if ($scope.errors.length === 0) {
-                        var args = undefined, fd = undefined, apiType = '';
-                        var title = $scope.activityData.titleId === $scope.freeTextId ? $scope.activityData.freeText : _.findWhere($scope.titleOptions, {_id: $scope.activityData.titleId}).display;
-                        if ($scope.activityData.image) {
+                        if ($scope.image && $scope.imgChange) {
                             fd = new FormData();
-                            fd.append($scope.activityData.image.name, $scope.activityData.image);
-                            fd.append('title', title);
-                            fd.append('location', $scope.activityData.location);
-                            fd.append('extraDetails', $scope.activityData.additionalInfo);
-                            fd.append('datetimeMS', moment($scope.activityData.datetimeValue).valueOf());
+                            fd.append($scope.image.name, $scope.image);
+                            if ($scope.oldTitle != title) {
+                                fd.append('title', title);
+                            }
+                            if ($scope.activityData.location != $scope.orgActivity.location) {
+                                fd.append('location', $scope.activityData.location);
+                            }
+                            if ($scope.activityData.additionalInfo != $scope.orgActivity.additionalInfo) {
+                                fd.append('extraDetails', $scope.activityData.additionalInfo);
+                            }
+                            if ($scope.activityData.datetimeValue != $scope.orgActivity.datetimeValue) {
+                                fd.append('datetimeMS', moment($scope.activityData.datetimeValue).valueOf());
+                            }
                             if ($scope.edit) {
-                                fd.append('activityId', $rootScope.activeModal.args.activityId);
+                                fd.append('activityId', $rootScope.activeModal.args._id.toString());
                                 apiType = 'updateActivityImage';
                             } else {
                                 apiType = 'createNewActivityImage';
@@ -95,15 +110,22 @@ angular.module('ourBoard').directive('createEditActivityDrtv',
                                 closeModal(true);
                             });
                         } else {
-                            args = {
-                                title: title,
-                                location: $scope.activityData.location,
-                                extraDetails: $scope.activityData.additionalInfo,
-                                datetimeMS: moment($scope.activityData.datetimeValue).valueOf()
-                            };
+                            args = {};
+                            if ($scope.oldTitle != title) {
+                                args.title = title;
+                            }
+                            if ($scope.activityData.location != $scope.orgActivity.location) {
+                                args.location = $scope.activityData.location;
+                            }
+                            if ($scope.activityData.additionalInfo != $scope.orgActivity.additionalInfo) {
+                                args.extraDetails = $scope.activityData.additionalInfo;
+                            }
+                            if ($scope.activityData.additionalInfo != $scope.orgActivity.additionalInfo) {
+                                args.datetimeMS = moment($scope.activityData.datetimeValue).valueOf();
+                            }
                             if ($scope.edit) {
                                 args.imgChange = $scope.imgChange;
-                                args.activityId = $rootScope.activeModal.args.activityId;
+                                args.activityId = $rootScope.activeModal.args._id.toString();
                                 apiType = 'updateActivity';
                             } else {
                                 apiType = 'createNewActivity';
@@ -124,7 +146,7 @@ angular.module('ourBoard').directive('createEditActivityDrtv',
                 };
 
                 $scope.clearImage = function() {
-                    $scope.activityData.image = null;
+                    $scope.image = null;
                     $scope.imageBtnText = 'הוסף תמונה';
                     $scope.imgChange = true;
                 };
@@ -141,7 +163,7 @@ angular.module('ourBoard').directive('createEditActivityDrtv',
                                 resizeObj.height = 500;
                             }
                             Upload.resize(file, resizeObj).then(function(resizedFile) {
-                                $scope.activityData.image = resizedFile;
+                                $scope.image = resizedFile;
                             });
                         });
                     }
@@ -149,21 +171,21 @@ angular.module('ourBoard').directive('createEditActivityDrtv',
 
                 $scope.restoreOrigImage = function() {
                     if ($scope.activityData.imageUrl) {
-                        $scope.activityData.image = $scope.activityData.imageUrl;
+                        $scope.image = $scope.activityData.imageUrl;
                         $scope.imageBtnText = 'החלף תמונה';
                     }
                     $scope.imgChange = false;
                 };
 
                 function convertDataFormat(obj) {
-                    var titleAndId = convertNameAndId(obj);
+                    var titleAndId = convertTitleAndId(obj);
                     return {
                         freeText: titleAndId.freeText,
                         titleId: titleAndId.titleId,
                         location: obj.location,
                         additionalInfo: obj.extraDetails,
                         datetimeValue: obj.datetimeMS,
-                        imageUrl: (obj.imgName == undefined) ? undefined : ENV.S3_URL + '/' + $rootScope.activeModal.args.activityId + '/' + obj.imgName // Same as in create API
+                        imageUrl: (obj.imgName == undefined) ? undefined : ENV.S3_URL + '/' + $rootScope.activeModal.args._id.toString() + '/' + obj.imgName // Same as in create API
                     }
                 };
 

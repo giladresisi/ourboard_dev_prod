@@ -119,7 +119,7 @@ angular.module('ourBoard', [
 
             .state('tab.activity-board', {
                 url: '/activity-board',
-                // cache: false, // ERROR! need to clear stateParams somehow if a reload is required on every entry to this state
+                cache: false, // ERROR! need to clear stateParams somehow if a reload is required on every entry to this state
                 views: {
                     'tab-activity-board': {
                         templateUrl: 'templates/activityBoardView.html',
@@ -134,7 +134,7 @@ angular.module('ourBoard', [
             })
             .state('tab.activity-details', {
                 url: '/activity-details/:activityId',
-                // cache: false, // ERROR! need to clear stateParams somehow if a reload is required on every entry to this state
+                cache: false, // ERROR! need to clear stateParams somehow if a reload is required on every entry to this state
                 views: {
                     'tab-activity-details': {
                         templateUrl: 'templates/activityDetailsView.html',
@@ -149,7 +149,7 @@ angular.module('ourBoard', [
             })
             .state('tab.community-info-details', {
                 url: '/community-info-details/:communityInfoId',
-                // cache: false, // ERROR! need to clear stateParams somehow if a reload is required on every entry to this state
+                cache: false, // ERROR! need to clear stateParams somehow if a reload is required on every entry to this state
                 views: {
                     'tab-community-info-details': {
                         templateUrl: 'templates/communityInfoDetailsView.html',
@@ -157,7 +157,7 @@ angular.module('ourBoard', [
                     }
                 },
                 params: {
-                    'info': false
+                    'communityInfoId': false
                 }
             });
 

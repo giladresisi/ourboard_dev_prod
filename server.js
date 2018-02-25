@@ -168,9 +168,9 @@ app.get('/api/me', ensureAuthenticated, function (req, res) {
  | Aux function to update user data
  |--------------------------------------------------------------------------
  */
-function updateUserData(users, userId, newUser, callback) {
+function updateUserData(users, userId, newData, callback) {
     users.updateOne({_id: new ObjectId(userId)}, {
-        $set: newUser
+        $set: newData
     }, function(err, updatedUser) {
         if (err) {
             console.log('post(/api/me) error: collection.updateOne()');
@@ -197,19 +197,19 @@ app.post('/api/me', ensureAuthenticated, function (req, res) {
                     console.log('post(/api/me) error: collection.findOne()');
                     return res.status(500).send({message: err.message});
                 } else if (user) {
-                    var newUser = {};
-                    newUser.displayName = req.body.displayName || user.displayName;
-                    newUser.phone = req.body.phone || user.phone;
-                    if (req.body.newPassword && req.body.oldPassword) {
-                        comparePassword(user.password, req.body.oldPassword, function (err, isMatch) {
-                            if (!isMatch) {
-                                console.log('post(/api/me +) error: Old password does not match - ' + req.body.oldPassword + ' ' + user.password);
-                                return res.status(403).send({message: 'Old password does not match'});
-                            }
+                    var newData = {};
+                    newData.displayName = req.body.displayName;
+                    newData.phone = req.body.phone;
+                    if (req.body.newPassword /* && req.body.oldPassword */) {
+                        // comparePassword(user.password, req.body.oldPassword, function (err, isMatch) {
+                        //     if (!isMatch) {
+                        //         console.log('post(/api/me +) error: Old password does not match - ' + req.body.oldPassword + ' ' + user.password);
+                        //         return res.status(403).send({message: 'Old password does not match'});
+                        //     }
                             hashPassword(req.body.newPassword, function (hashed) {
-                                newUser.password = hashed;
+                                newData.password = hashed;
                             });
-                        });
+                        // });
                     }
                     if (req.body.email) {
                         if (user.facebook) {
@@ -225,14 +225,14 @@ app.post('/api/me', ensureAuthenticated, function (req, res) {
                                     console.log('post(/api/me) error: New email is used by another user');
                                     return res.status(402).send({message: 'New email is used by another user'});
                                 }
-                                newUser.email = req.body.email;
-                                updateUserData(users, user._id.toString(), newUser, function(updatedUser) {
+                                newData.email = req.body.email;
+                                updateUserData(users, user._id.toString(), newData, function(updatedUser) {
                                     res.send(updatedUser);
                                 });
                             });
                         }
                     } else {
-                        updateUserData(users, user._id.toString(), newUser, function(updatedUser) {
+                        updateUserData(users, user._id.toString(), newData, function(updatedUser) {
                             res.send(updatedUser);
                         });
                     }
@@ -1531,7 +1531,7 @@ app.get('/activity/single/:id', ensureAuthenticated, function (req, res) {
                 console.log('get(/activity/single) error: db.collection(activities)');
                 return res.status(500).send({message: err.message});
             }
-            activities.findOne({"_id": new ObjectId(req.params.id)}, function (err, activity) {
+            activities.findOne({_id: new ObjectId(req.params.id)}, function (err, activity) {
                 if (err != null) {
                     console.log('get(/activity/single) error: collection.findOne(activityId)');
                     return res.status(500).send({message: err.message});
@@ -1569,7 +1569,6 @@ app.get('/activity/single/:id', ensureAuthenticated, function (req, res) {
                                 return 0;
                             });
                             delete activity.users; // create users list in client using participants list
-                            delete activity.organizer;
                             res.send(activity);
                         });
                     });
@@ -1590,7 +1589,7 @@ app.get('/guest/activity/single/:id', function (req, res) {
                 console.log('get(/guest/activity/single/) error: db.collection(activities)');
                 return res.status(500).send({message: err.message});
             }
-            activities.findOne({"_id": new ObjectId(req.params.id)}, function (err, activity) {
+            activities.findOne({_id: new ObjectId(req.params.id)}, function (err, activity) {
                 if (err != null) {
                     console.log('get(/guest/activity/single/) error: collection.findOne(activityId)');
                     return res.status(500).send({message: err.message});
@@ -2182,16 +2181,33 @@ app.post('/api/remarks', ensureAuthenticated, function (req, res) {
 
 /*
  |--------------------------------------------------------------------------
- | GET /community-info - Get CommunityInfo
+ | GET /community-info/all - Get metadata of all CommunityInfo (without the infoPage data)
  |--------------------------------------------------------------------------
  */
 app.get('/community-info/all', function (req, res) {
     MongoPool.getInstance(function (db) {
         db.collection('community_info', function (err, communityInfoItems) {
-            communityInfoItems.find({}/*, {projection: {
-                    TODO only titles & descriptions
-                }}*/).toArray(function (err, communityInfoItemsArr) {
+            communityInfoItems.find({}, {projection: {infoPage: 0}}).toArray(function (err, communityInfoItemsArr) {
                 res.send(communityInfoItemsArr);
+            });
+        });
+    });
+});
+
+/*
+ |--------------------------------------------------------------------------
+ | GET /community-info/single - Get infoPage data of a single CommunityInfo entry
+ |--------------------------------------------------------------------------
+ */
+app.get('/community-info/single/:id', ensureAuthenticated, function (req, res) {
+    MongoPool.getInstance(function (db) {
+        db.collection('community_info', function (err, communityInfoItems) {
+            communityInfoItems.findOne({_id: new ObjectId(req.params.id)}, {projection: {infoPage: 1, title: 1}}, function (err, communityInfoItem) {
+                if (err != null) {
+                    console.log('get(/community-info/single) error: collection.findOne(communityInfoId)');
+                    return res.status(500).send({message: err.message});
+                }
+                res.send(communityInfoItem);
             });
         });
     });

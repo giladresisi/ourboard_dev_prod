@@ -66,6 +66,9 @@ angular.module('ourBoard').value('apiMap', {
     getCommunityInfos: {
         urlTemplate: '/community-info/all',
         method: 'GET'
+    },
+    getCommunityInfo: {
+        urlTemplate: '/community-info/single/<%= communityInfoId %>',
+        method: 'GET'
     }
-
 });

@@ -43,11 +43,11 @@ angular.module('ourBoard').controller('ProfileCtrl',
                 authSrvc.getUser().then(function () {
                     actionsAfterSignupSrvc.performAllActions().then(function () {
                         var redirectionState = actionsAfterSignupSrvc.getRedirectionState();
-                        if(redirectionState){
+                        if(redirectionState) {
                             $state.go(redirectionState, actionsAfterSignupSrvc.getRedirectionStateParams() );
                         }
-                        else{
-                            $state.go('tab.activity-board');
+                        else {
+                            $state.go('tab.activity-board', {});
                         }
                     });
                 });
@@ -77,7 +77,7 @@ angular.module('ourBoard').controller('ProfileCtrl',
 
         $scope.logout = function () {
             authSrvc.logout();
-            $state.go('tab.activity-board');
+            $state.go('tab.activity-board', {});
         };
 
         $scope.editProfile = function () {

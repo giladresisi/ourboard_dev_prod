@@ -62,9 +62,9 @@
                         ngf-resize="{width: 500}">{{imageBtnText}}</button>
                     <button ng-click="clearImage()" ng-if="activityData.image">הסר תמונה</button>
                     <button ng-click="restoreOrigImage()" ng-if="edit && imgChange && activityData.imageUrl">תמונה מקורית</button>
-                    <div class="preview" ng-if="activityData.image">
+                    <div class="preview" ng-if="image">
                         <br>
-                        <img ngf-src="activityData.image" style="width: 100%; height: auto">
+                        <img ngf-src="image" style="width: 100%; height: auto">
                     </div>
                 </div>
 
@@ -77,7 +77,7 @@
         </div>
     </ion-content>
     <div class="bar bar-modal-footer bar-stable">
-        <button class="button button-right button-calm" ng-click="edit ? updateActivity() : createActivity()">{{edit ?
+        <button class="button button-right button-calm" ng-click="createEditActivity()">{{edit ?
             'עדכן פעילות' : 'צור פעילות' }}
         </button>
         <button class="button button-left button-light" ng-click="cancel()">ביטול</button>
