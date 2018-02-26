@@ -9964,10 +9964,10 @@ a.button {
     font-size: 25px; }
 
 .toggle-wrapper .toggle .track {
-  border-color: #32AD32; }
+  border-color: #a3a3a3; }
 
 .toggle-wrapper .toggle .handle {
-  background-color: #32AD32; }
+  background-color: #a3a3a3; }
 
 .toggle-wrapper .toggle input:checked + .track {
   background-color: #00ff00;

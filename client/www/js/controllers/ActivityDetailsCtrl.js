@@ -52,6 +52,11 @@ angular.module('ourBoard').controller('ActivityDetailsCtrl',
             }
         };
 
+        $scope.doRefresh = function() {
+            $rootScope.$broadcast('REFRESH_ACTIVITY');
+            $rootScope.$broadcast('scroll.refreshComplete');
+        };
+
         $scope.$on('$ionicView.beforeEnter', function (event, viewData) {
             viewData.enableBack = true;
             $ionicTabsDelegate.showBar(false);
@@ -100,7 +105,7 @@ angular.module('ourBoard').controller('ActivityDetailsCtrl',
             $state.go('tab.activity-board');
         };
 
-        $rootScope.$on('ACTIVITY_EDITED', function (event) {
+        $rootScope.$on('REFRESH_ACTIVITY', function (event) {
             params = {};
             fetchData($scope.userData);
         });

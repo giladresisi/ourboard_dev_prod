@@ -10,12 +10,13 @@ angular.module('ourBoard').directive('remarksDrtv',
 
                 function initData() {
                     $scope.remark = '';
-                }
+                };
+
                 $scope.submitRemarks = function () {
                     $scope.errors = [];
 
-                    if(!$scope.remark || $scope.remark.length < 5){
-                        $scope.errors.push('אנא הזן שם אירוע תקין');
+                    if(!$scope.remark || $scope.remark.length < 2){
+                        $scope.errors.push('אנא כתוב הערה חוקית (יותר מ-2');
                     }
 
                     if ($scope.errors.length === 0) {
@@ -26,9 +27,10 @@ angular.module('ourBoard').directive('remarksDrtv',
                             }
                         }).then(function (res) {
                             initData();
-                            $rootScope.activeModal.hide();
                             $ionicPopup.alert({
                                 title: 'תודה ששיתפת אותנו בחוויה שלך'
+                            }).then(function() {
+                                $rootScope.activeModal.hide();
                             });
                         });
                     }

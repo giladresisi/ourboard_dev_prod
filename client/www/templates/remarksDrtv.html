@@ -20,7 +20,7 @@
                     <textarea
                         class="message"
                         rows="4"
-                        ng-model="remark"
+                        ng-model="$parent.remark"
                         placeholder="כתבו לנו את דעתכם...">
             		</textarea>
                 </label>
@@ -34,8 +34,7 @@
         </div>
     </ion-content>
     <div class="bar bar-modal-footer bar-stable">
-        <button class="button button-right button-calm" ng-click="submitRemarks()">שלח
-        </button>
+        <button class="button button-right button-calm" ng-click="submitRemarks()">שלח</button>
         <button class="button button-left button-light" ng-click="cancel()">ביטול</button>
     </div>
 </ion-modal-view>

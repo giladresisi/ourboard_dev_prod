@@ -4,7 +4,6 @@
     </ion-nav-title>
     <div ng-click="openCreateNewActivityModal()" class="floating-button"><i class="ion-plus lg"></i></div>
     <ion-content class="content">
-    	<ion-refresher on-refresh="doRefresh()"></ion-refresher>
         <div class="feed-card-half" ng-repeat="infoItem in communityInfoItems track by infoItem.id">
             <community-info-item-drtv info="infoItem"/>
         </div>

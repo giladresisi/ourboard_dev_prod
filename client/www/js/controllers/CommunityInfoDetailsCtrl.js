@@ -7,7 +7,6 @@ angular.module('ourBoard').controller('CommunityInfoDetailsCtrl',
             }
         }).then(function (res) {
             $scope.infoData = res.data;
-            console.log('data: ' + JSON.stringify($scope.infoData));
         });
 
         $scope.$on('$ionicView.beforeEnter', function (event, viewData) {
@@ -20,9 +19,10 @@ angular.module('ourBoard').controller('CommunityInfoDetailsCtrl',
 
         $scope.goToLink = function (linkUrl) {
             var fullUrl = linkUrl;
-            var urlPrefix = "http://";
-            if (!fullUrl.startsWith(urlPrefix)) {
-                fullUrl = urlPrefix.concat(fullUrl);
+            var urlPrefixHttp = "http://";
+            var urlPrefixHttps = "https://";
+            if (!fullUrl.startsWith(urlPrefixHttp) && !fullUrl.startsWith(urlPrefixHttps)) {
+                fullUrl = urlPrefixHttp.concat(fullUrl);
             }
             if (window.cordova) {
                 window.open(fullUrl, "_system");

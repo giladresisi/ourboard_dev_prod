@@ -216,7 +216,7 @@ angular.module('ourBoard').directive('createEditActivityDrtv',
                     $rootScope.activeModal.hide();
                     if (refreshScope) {
                         if ($scope.edit) {
-                            $rootScope.$broadcast('ACTIVITY_EDITED');
+                            $rootScope.$broadcast('REFRESH_ACTIVITY');
                         } else {
                             $rootScope.$broadcast('REFRESH_ACTIVITY_BOARD');
                         }

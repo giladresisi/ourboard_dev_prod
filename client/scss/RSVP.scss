@@ -3,10 +3,10 @@
 .toggle-wrapper {
     .toggle {
         .track {
-            border-color: $strongGood;
+            border-color: $disabled;
         }
         .handle {
-            background-color: $strongGood;
+            background-color: $disabled;
         }
         input:checked + .track {
             background-color: $good;
