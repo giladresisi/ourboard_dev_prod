@@ -1855,7 +1855,7 @@ app.post('/activity/update', ensureAuthenticated, function (req, res) {
                                 newData.extraDetails = req.body.extraDetails;
                             }
                             if (req.body.datetimeMS) {
-                                newData.datetimeMS = req.body.datetimeMS;
+                                newData.datetimeMS = parseInt(req.body.datetimeMS);
                             }
                             activities.updateOne({_id: new ObjectId(activity._id.toString())}, {
                                 $set: newData,
@@ -1891,7 +1891,7 @@ app.post('/activity/update', ensureAuthenticated, function (req, res) {
                                 newData.extraDetails = req.body.extraDetails;
                             }
                             if (req.body.datetimeMS) {
-                                newData.datetimeMS = req.body.datetimeMS;
+                                newData.datetimeMS = parseInt(req.body.datetimeMS);
                             }
                             activities.updateOne({_id: new ObjectId(activity._id.toString())}, {
                                 $set: newData
@@ -1967,7 +1967,7 @@ app.post('/activity/update/image', ensureAuthenticated, any, function (req, res)
                             newData.extraDetails = req.body.extraDetails;
                         }
                         if (req.body.datetimeMS) {
-                            newData.datetimeMS = req.body.datetimeMS;
+                            newData.datetimeMS = parseInt(req.body.datetimeMS);
                         }
                         activities.updateOne({_id: new ObjectId(activity._id.toString())}, {
                             $set: newData
