@@ -27,13 +27,13 @@
                 </label>
 
                 <label class="item item-input ion-datetime-picker item-stacked-label" ion-datetime-picker
-                       ng-model="activityData.datetimeValue">
+                       ng-model="activityData.datetimeMS">
 		            <span class="input-label">
 		                <span>תאריך ושעה</span>
 		                <span class="mandatory">*</span>
 		            </span>
                     <div class="date-time-text">
-                        {{activityData.datetimeValue | date: "yyyy-MM-dd H:mm:ss"}}
+                        {{activityData.datetimeMS | date: "yyyy-MM-dd H:mm:ss"}}
                     </div>
                 </label>
 
@@ -52,7 +52,7 @@
                     <textarea
                         class="additional-info"
                         rows="4"
-                        ng-model="activityData.additionalInfo"
+                        ng-model="activityData.extraDetails"
                         placeholder="הוסף פרטים נוספים על האירוע">
             		</textarea>
                 </label>

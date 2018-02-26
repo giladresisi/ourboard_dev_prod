@@ -198,8 +198,12 @@ app.post('/api/me', ensureAuthenticated, function (req, res) {
                     return res.status(500).send({message: err.message});
                 } else if (user) {
                     var newData = {};
-                    newData.displayName = req.body.displayName;
-                    newData.phone = req.body.phone;
+                    if (req.body.displayName) {
+                        newData.displayName = req.body.displayName;
+                    }
+                    if (req.body.phone) {
+                        newData.phone = req.body.phone;
+                    }
                     if (req.body.newPassword /* && req.body.oldPassword */) {
                         // comparePassword(user.password, req.body.oldPassword, function (err, isMatch) {
                         //     if (!isMatch) {
@@ -1840,13 +1844,21 @@ app.post('/activity/update', ensureAuthenticated, function (req, res) {
                         }
                         if (req.body.imgChange) { // Removed
                             var imgName = activity.imgName;
+                            var newData = {};
+                            if (req.body.title) {
+                                newData.title = req.body.title;
+                            }
+                            if (req.body.location) {
+                                newData.location = req.body.location;
+                            }
+                            if (req.body.extraDetails) {
+                                newData.extraDetails = req.body.extraDetails;
+                            }
+                            if (req.body.datetimeMS) {
+                                newData.datetimeMS = req.body.datetimeMS;
+                            }
                             activities.updateOne({_id: new ObjectId(activity._id.toString())}, {
-                                $set: {
-                                    type: req.body.title,
-                                    location: req.body.location,
-                                    extraDetails: req.body.extraDetails,
-                                    datetimeMS: req.body.datetimeMS
-                                },
+                                $set: newData,
                                 $unset: {
                                     imgName: "" // Remove imgName field
                                 }
@@ -1868,13 +1880,21 @@ app.post('/activity/update', ensureAuthenticated, function (req, res) {
                                 });
                             });
                         } else { // Image remained the same (not added / removed / changed / removed and re-added), no S3 calls required
+                            var newData = {};
+                            if (req.body.title) {
+                                newData.title = req.body.title;
+                            }
+                            if (req.body.location) {
+                                newData.location = req.body.location;
+                            }
+                            if (req.body.extraDetails) {
+                                newData.extraDetails = req.body.extraDetails;
+                            }
+                            if (req.body.datetimeMS) {
+                                newData.datetimeMS = req.body.datetimeMS;
+                            }
                             activities.updateOne({_id: new ObjectId(activity._id.toString())}, {
-                                $set: {
-                                    type: req.body.title,
-                                    location: req.body.location,
-                                    extraDetails: req.body.extraDetails,
-                                    datetimeMS: req.body.datetimeMS
-                                }
+                                $set: newData
                             }, function (err) {
                                 if (err) {
                                     console.log('post(/activity/update) error: activities.updateOne(newActivity) - no image change');
@@ -1934,14 +1954,23 @@ app.post('/activity/update/image', ensureAuthenticated, any, function (req, res)
                         }
                         var oldImgName = activity.imgName;
                         var newImgName = req.files[0].filename.split(req.datetimeUploadedMS.toString() + '_')[1];
+                        var newData = {
+                            imgName: newImgName // Update image name even if removed & re-added the same image (can't tell if different)
+                        };
+                        if (req.body.title) {
+                            newData.title = req.body.title;
+                        }
+                        if (req.body.location) {
+                            newData.location = req.body.location;
+                        }
+                        if (req.body.extraDetails) {
+                            newData.extraDetails = req.body.extraDetails;
+                        }
+                        if (req.body.datetimeMS) {
+                            newData.datetimeMS = req.body.datetimeMS;
+                        }
                         activities.updateOne({_id: new ObjectId(activity._id.toString())}, {
-                            $set: {
-                                title: req.body.title,
-                                location: req.body.location,
-                                extraDetails: req.body.extraDetails,
-                                datetimeMS: parseInt(req.body.datetimeMS),
-                                imgName: newImgName // Update image name even if removed & re-added the same image (can't tell if different)
-                            }
+                            $set: newData
                         }, function (err) {
                             if (err) {
                                 console.log('post(/activity/update) error: activities.updateOne(newActivity) - image change');

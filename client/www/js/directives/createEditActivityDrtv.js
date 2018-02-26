@@ -35,11 +35,11 @@ angular.module('ourBoard').directive('createEditActivityDrtv',
                 function initData() {
                     $scope.imageBtnText = 'הוסף תמונה';
                     $scope.activityData = {
-                        datetimeValue : new Date(),
+                        datetimeMS : new Date(),
                         titleId: null,
                         freeText: '',
                         location: '',
-                        additionalInfo: ''
+                        extraDetails: ''
                     };
                     if ($scope.edit) {
                         $scope.activityData = convertDataFormat($rootScope.activeModal.args);
@@ -47,7 +47,7 @@ angular.module('ourBoard').directive('createEditActivityDrtv',
                             $scope.image = $scope.activityData.imageUrl;
                             $scope.imageBtnText = 'החלף תמונה';
                         }
-                        $scope.orgActivity = $scope.activityData;
+                        angular.copy($scope.activityData, $scope.orgActivity);
                     }
                 }
 
@@ -64,17 +64,19 @@ angular.module('ourBoard').directive('createEditActivityDrtv',
                         $scope.errors.push('אנא הזן כותרת תקינה לאירוע');
                     }
 
-                    if (!$scope.activityData.datetimeValue) {
+                    if (!$scope.activityData.datetimeMS) {
                         $scope.errors.push('אנא בחר תאריך ושעה לאירוע');
                     }
 
-                    else if(moment($scope.activityData.datetimeValue).isSameOrBefore(moment())){
+                    else if(moment($scope.activityData.datetimeMS).isSameOrBefore(moment())){
                         $scope.errors.push('תאריך האירוע לא יכול להיות בעבר');
                     }
 
                     if (!$scope.activityData.location || $scope.activityData.location.length < 3) {
                         $scope.errors.push('אנא הזן את מיקום האירוע');
                     }
+
+                    console.log('new: ' + $scope.activityData.datetimeMS + ', old: ' + $scope.orgActivity.datetimeMS);
 
                     if ($scope.edit && !$scope.imgChange && ($scope.activityData == $scope.orgActivity) && ($scope.oldTitle == title)) {
                         $scope.errors.push('אנא שנה פרט אחד לפחות או לחץ ביטול');
@@ -90,11 +92,11 @@ angular.module('ourBoard').directive('createEditActivityDrtv',
                             if ($scope.activityData.location != $scope.orgActivity.location) {
                                 fd.append('location', $scope.activityData.location);
                             }
-                            if ($scope.activityData.additionalInfo != $scope.orgActivity.additionalInfo) {
-                                fd.append('extraDetails', $scope.activityData.additionalInfo);
+                            if ($scope.activityData.extraDetails != $scope.orgActivity.extraDetails) {
+                                fd.append('extraDetails', $scope.activityData.extraDetails);
                             }
-                            if ($scope.activityData.datetimeValue != $scope.orgActivity.datetimeValue) {
-                                fd.append('datetimeMS', moment($scope.activityData.datetimeValue).valueOf());
+                            if ($scope.activityData.datetimeMS != $scope.orgActivity.datetimeMS) {
+                                fd.append('datetimeMS', moment($scope.activityData.datetimeMS).valueOf());
                             }
                             if ($scope.edit) {
                                 fd.append('activityId', $rootScope.activeModal.args._id.toString());
@@ -117,11 +119,11 @@ angular.module('ourBoard').directive('createEditActivityDrtv',
                             if ($scope.activityData.location != $scope.orgActivity.location) {
                                 args.location = $scope.activityData.location;
                             }
-                            if ($scope.activityData.additionalInfo != $scope.orgActivity.additionalInfo) {
-                                args.extraDetails = $scope.activityData.additionalInfo;
+                            if ($scope.activityData.extraDetails != $scope.orgActivity.extraDetails) {
+                                args.extraDetails = $scope.activityData.extraDetails;
                             }
-                            if ($scope.activityData.additionalInfo != $scope.orgActivity.additionalInfo) {
-                                args.datetimeMS = moment($scope.activityData.datetimeValue).valueOf();
+                            if ($scope.activityData.datetimeMS != $scope.orgActivity.datetimeMS) {
+                                args.datetimeMS = moment($scope.activityData.datetimeMS).valueOf();
                             }
                             if ($scope.edit) {
                                 args.imgChange = $scope.imgChange;
@@ -183,8 +185,8 @@ angular.module('ourBoard').directive('createEditActivityDrtv',
                         freeText: titleAndId.freeText,
                         titleId: titleAndId.titleId,
                         location: obj.location,
-                        additionalInfo: obj.extraDetails,
-                        datetimeValue: obj.datetimeMS,
+                        extraDetails: obj.extraDetails,
+                        datetimeMS: obj.datetimeMS,
                         imageUrl: (obj.imgName == undefined) ? undefined : ENV.S3_URL + '/' + $rootScope.activeModal.args._id.toString() + '/' + obj.imgName // Same as in create API
                     }
                 };
